@@ -18,7 +18,15 @@ instance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = token;
     }
-    return config;
+    // 检查是否为文件上传请求
+    if (config.headers['Content-Type'] === 'multipart/form-data') {
+      // 对于文件上传请求，保持原有的 Content-Type
+      return config;
+    } else {
+      // 对于非文件上传请求，可以在这里修改 Content-Type
+      config.headers['Content-Type'] = 'application/json'; // 示例：对于非文件上传请求
+      return config;
+    }
   },
   (error) => {
     // 请求失败
@@ -30,6 +38,7 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => {
     // 响应成功
+    console.log(response)
     return response;
   },
   (error) => {
