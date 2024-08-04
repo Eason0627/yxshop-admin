@@ -48,7 +48,7 @@
       <!-- 用户信息 -->
       <div class="user">
         <div class="avatar">
-          <img :src="user.avatar ? user.avatar : ''" alt="" />
+          <img :src="user.avatar ? user.avatar : 'https://my-oss-xiyuu.oss-cn-hangzhou.aliyuncs.com/98226638-0cfc-4a91-a88b-c410d793b2af.jpg'" alt="用户头像" />
         </div>
         <div class="username">
           {{ user.username }}

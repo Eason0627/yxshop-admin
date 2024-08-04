@@ -69,6 +69,8 @@
           </button>
         </div>
       </form>
+
+
       <transition name="fade">
         <form
           v-if="form_type === 'register' || form_type === 'forgetPsd'"
@@ -125,10 +127,11 @@
               class="w-8/12 px-2 py-1.5 border rounded"
             />
             <button
+             
               class="ml-auto px-2 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
               @click.prevent="sendVerificationEmail"
             >
-              发送验证码
+              {{buttonText}}
             </button>
           </div>
           <div class="mb-4">
@@ -200,6 +203,13 @@ const switchForm = (form: "login" | "register" | "forgetPsd") => {
   loginForm.confirmPassword = "";
   loginForm.verificationCode = "";
 };
+
+// 定义按钮的文本
+const buttonText = ref('发送验证码');
+// 标记是否正在倒计时
+// const isCounting = ref(false);
+// 倒计时剩余秒数
+const countdown = ref(60);
 
 const handleLogin = async () => {
   if (res) return PopUp.getInstance(Type.alert, "操作频繁！").show();
@@ -339,7 +349,26 @@ const sendVerificationEmail = async () => {
         PopUp.getInstance(Type.error, res.data.msg).show();
       }
     })) as AxiosResponse;
+
+    //开始倒计时
+    // startCountdown();
 };
+
+// 倒计时方法
+function startCountdown() {
+  isCounting.value = true;
+  const intervalId = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+      buttonText.value = `${countdown.value} 秒后重发`;
+    } else {
+      // 倒计时结束
+      clearInterval(intervalId);
+      isCounting.value = true;
+      buttonText.value = '发送验证码';
+    }
+  }, 1000);
+}
 
 onMounted(() => {
   // 如果本地有存储数据则自动填充用户名密码
@@ -349,6 +378,8 @@ onMounted(() => {
     rememberMe.value = true;
   }
 });
+
+
 
 // 监听 rememberMe 数据变化
 watch(

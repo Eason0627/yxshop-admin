@@ -10,6 +10,15 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+  server: {
+    proxy: {
+      '/upload': {
+        target: 'http://localhost:8080',  // 后端服务器地址
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/upload/, '')  // 移除路径前缀
+      }
+    }
+  },
   resolve: {
     alias: {
       '@':path.resolve(__dirname, 'src'),
