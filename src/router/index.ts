@@ -124,7 +124,7 @@ const routes = [
       {
         path: "/promotion/effect",
         name: "活动效果",
-        component: () => import("@/views/Promotion/effect.vue"),
+        component: () => import("@/views/Promotion/Effect.vue"),
       },
     ],
   },

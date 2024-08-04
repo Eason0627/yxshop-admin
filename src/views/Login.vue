@@ -169,6 +169,7 @@ import { PopUp, Type } from "@/components/PopUp/index";
 import { useRouter } from "vue-router";
 // 导入记住密码状态仓库
 import { useRememberMeStore } from "@/store/index";
+import User from "@/model/User";
 const store = useRememberMeStore();
 
 // 获取 router 对象
@@ -225,10 +226,12 @@ const handleLogin = async () => {
     .then((res: AxiosResponse) => {
       if (res.data.code === 200) {
         PopUp.getInstance(Type.success, "登录成功").show();
+        const user: User = res.data.data.user;
+        const token: string = res.data.data.token
         // 存储token
-        localStorage.setItem("token", res.data.data.token);
+        localStorage.setItem("token", token);
         // 存储当前登录用户信息
-        localStorage.setItem("user", JSON.stringify(res.data.data.user));
+        localStorage.setItem("user", JSON.stringify(user));
         // 导入 router 跳转首页
         router.push("/home");
       } else {

@@ -46,31 +46,76 @@
         <el-icon><FullScreen /></el-icon>
       </div>
       <!-- 用户信息 -->
-      <div class="user">
-        <div class="avatar">
-          <img :src="user.avatar ? user.avatar : ''" alt="" />
+      <div class="user relative">
+        <div
+          class="userInfo flex items-center w-full h-full px-3"
+          @mouseover="onMouseOver"
+          @mouseout="onMouseOut"
+        >
+          <div class="avatar mr-2">
+            <img :src="user.avatar ? user.avatar : ''" alt="" />
+          </div>
+          <div class="username">
+            {{ user.username }}
+          </div>
         </div>
-        <div class="username">
-          {{ user.username }}
-        </div>
+        <Transition name="fade">
+          <ul
+            class="userMenu absolute top-[110%] w-full p-1 text-left text-sm border-[1px] rounded-md shadow-lg bg-white z-10"
+            @mouseenter="menuShow = true"
+            @mouseleave="menuShow = false"
+            v-show="menuShow"
+          >
+            <div
+              class="document flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
+            >
+              <el-icon><Switch /></el-icon>
+              <span class="ml-2">切换店铺</span>
+            </div>
+            <div
+              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
+            ></div>
+            <div
+              class="lock flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
+            >
+              <el-icon><Lock /></el-icon>
+              <span class="ml-2">锁定屏幕</span>
+            </div>
+            <div
+              class="logout flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
+              @click="toLogin()"
+            >
+              <el-icon><SwitchButton /></el-icon>
+              <span class="ml-2">退出系统</span>
+            </div>
+          </ul>
+        </Transition>
       </div>
       <!-- 系统设置 -->
-      <!-- <div class="setting">
+      <div class="setting">
         <el-icon><Setting /></el-icon>
-      </div> -->
+      </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
 /// 导入事件总线
 import bus from "@/utils/event-bus.ts";
-import { ref, onBeforeMount, onMounted } from "vue";
+import { ref, onBeforeMount, onMounted, inject } from "vue";
 import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
+import { Axios } from "axios";
+
+// 获取 axios
+const axios: Axios = inject("axios") as Axios;
 
 // 记录侧边栏缩放状态
 const isCollapse = ref(true);
+
+// 用户菜单显示状态
+const menuShow = ref(false);
+const mouseInMenu = ref(false);
 
 let user: User;
 // 侧边导航展开收起
@@ -85,7 +130,6 @@ let currentRoute: any = ref(router.currentRoute.value);
 router.beforeEach((to, _from, next) => {
   // 更新当前路由引用
   currentRoute.value = to;
-
   // 重新获取同级路由信息
   getRouteInfo();
 
@@ -110,6 +154,17 @@ const getRouteInfo = () => {
   }
 };
 
+const getUserInfo = async () => {
+  await axios.get("/users/" + user.id).then((res) => {
+    if (res.data.code === 200) {
+      user = res.data.data;
+    } else {
+      PopUp.getInstance(Type.error, res.data.msg).show();
+      toLogin();
+    }
+  });
+};
+
 // 同级路由跳转
 const handleClickRoute = async (route: RouteRecordRaw) => {
   await router.push(route.path);
@@ -118,6 +173,18 @@ const handleClickRoute = async (route: RouteRecordRaw) => {
 const toLogin = () => {
   localStorage.clear();
   router.replace("/login");
+};
+
+const onMouseOver = () => {
+  menuShow.value = true;
+  mouseInMenu.value = true;
+};
+const onMouseOut = (event: any) => {
+  // 检查鼠标是否离开了 userInfo
+  const isOutside = !event.currentTarget.contains(event.relatedTarget);
+  if (isOutside && !mouseInMenu.value) {
+    menuShow.value = false;
+  }
 };
 
 onBeforeMount(() => {
@@ -130,7 +197,9 @@ onBeforeMount(() => {
   }
 });
 
-onMounted(() => {});
+onMounted(async () => {
+  await getUserInfo();
+});
 </script>
 <style lang="scss" scoped>
 .topTools {
@@ -182,7 +251,6 @@ onMounted(() => {});
     .search,
     .notice,
     .fullScreen,
-    .user,
     .setting {
       display: flex;
       justify-content: center;
@@ -196,27 +264,57 @@ onMounted(() => {});
       }
     }
     .user {
-      .avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: #f6f6f6;
-        overflow: hidden;
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      cursor: pointer;
+      &:hover {
+        background: none;
+      }
+
+      .fade-enter-active,
+      .fade-leave-active {
+        transition: opacity 0.3s ease;
+      }
+
+      .fade-enter-from,
+      .fade-leave-to {
+        opacity: 0;
+      }
+
+      .userInfo {
+        &:hover {
+          background: #f6f6f6;
+        }
+        .avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background-color: #f6f6f6;
+          overflow: hidden;
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        .username {
+          width: 100px;
+          font-size: 12px;
+          font-weight: 700;
+          text-align: center;
+          text-overflow: ellipsis;
+          // 禁止文字换行
+          white-space: nowrap;
+          overflow: hidden;
         }
       }
-      .username {
-        width: 100px;
-        font-size: 12px;
-        font-weight: 700;
-        text-align: center;
-        text-overflow: ellipsis;
-        // 禁止文字换行
-        white-space: nowrap;
-        overflow: hidden;
+
+      .userMenu {
+        div:hover {
+          background: #f6f6f6;
+        }
       }
     }
   }

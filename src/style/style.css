@@ -14,9 +14,10 @@
 
   --theme-color: #197c68;
 
-  --info-color: #616161;
-  --info-border-color: #616161b9;
-  --info-bg-color: #61616183;
+  --info-color: #000000e6;
+  --info-border-color: #e6e9ef;
+  --info-bg-color: #f2f4f8;
+  --info-bg-hover-color: #e9ecf1;
 
   --warning-color: #e6a23c;
   --warning-border-color: #e7a62ecc;
