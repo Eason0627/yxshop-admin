@@ -8,6 +8,13 @@ import "./style/tailwind.css";
 
 import App from "./App.vue";
 const app = createApp(App);
+
+// 导入默认图片
+import defaultAvatar from "@/assets/6c5aad05a990b987ef542ef3db57147.jpg"; // 头像
+import defaultShopImage from "@/assets/shop.jpg";
+app.provide("defaultAvatar", defaultAvatar);
+app.provide("defaultShopImage", defaultShopImage);
+
 // 导入 vue-router
 import router from "./router";
 

@@ -1,6 +1,7 @@
 export default interface User {
   id: string; // 用户ID，作为主键，通常不需要校验，除非有特定需求
   username: string; // 用户名，必须唯一，但这里我们只校验非空
+  nick_name: string;
   password: string;
   email: string; // 电子邮件，校验邮箱格式
   phone: string; // 手机号码，校验格式

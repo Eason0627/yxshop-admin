@@ -53,10 +53,10 @@
           @mouseout="onMouseOut"
         >
           <div class="avatar mr-2">
-            <img :src="user.avatar ? user.avatar : 'https://my-oss-xiyuu.oss-cn-hangzhou.aliyuncs.com/98226638-0cfc-4a91-a88b-c410d793b2af.jpg'" alt="用户头像" />
+            <img :src="user.avatar ? user.avatar : defaultAvatar " alt="用户头像" />
           </div>
           <div class="username">
-            {{ user.username }}
+            {{ user.nick_name }}
           </div>
         </div>
         <Transition name="fade">
@@ -106,6 +106,9 @@ import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
+
+// 注入默认头像
+const defaultAvatar = inject("defaultAvatar");
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
