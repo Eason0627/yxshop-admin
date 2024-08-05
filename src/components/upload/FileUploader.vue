@@ -15,7 +15,7 @@
     list-type="picture-card"
     :class="{ 'is-disabled': disabled }"
   >
-    <i class="el-icon-plus" />
+    <el-icon><UploadFilled /></el-icon>
   </el-upload>
 </template>
 
@@ -30,7 +30,7 @@ interface Props {
   limit?: number;
   beforeUpload?: (file: any) => boolean;
   onSuccess?: (response: any, file: any, fileList: any[]) => void;
-  onError?: (error: any, file: any, fileList: any[]) => void;
+  onError?: (error: any, file: any, fileList: any[]) => void; 
 }
 
 interface Emits {

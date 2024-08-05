@@ -10,11 +10,11 @@
       enctype="multipart/form-data"
     >
       <!-- 商品信息 -->
-      <h3 class="text-xl col-span-2">商品信息</h3>
+      <h3 class="text-xl col-span-2 mb-3">商品信息</h3>
       <el-form-item
         label="商品名称"
         prop="product_info.product_name"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model="form.product_info.product_name"
@@ -25,7 +25,7 @@
       <el-form-item
         label="商品描述"
         prop="product_info.description"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model="form.product_info.description"
@@ -37,7 +37,7 @@
       <el-form-item
         label="品牌ID"
         prop="product_info.brand_id"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model.number="form.product_info.brand_id"
@@ -48,7 +48,7 @@
       <el-form-item
         label="店铺ID"
         prop="product_info.shop_id"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model.number="form.product_info.shop_id"
@@ -59,7 +59,7 @@
       <el-form-item
         label="原产地"
         prop="product_info.origin"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model="form.product_info.origin"
@@ -70,7 +70,7 @@
       <el-form-item
         label="材质"
         prop="product_info.material"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model="form.product_info.material"
@@ -81,7 +81,7 @@
       <el-form-item
         label="尺寸"
         prop="product_info.size"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input v-model="form.product_info.size" placeholder="请输入尺寸" />
       </el-form-item>
@@ -89,7 +89,7 @@
       <el-form-item
         label="颜色"
         prop="product_info.color"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input v-model="form.product_info.color" placeholder="请输入颜色" />
       </el-form-item>
@@ -97,7 +97,7 @@
       <el-form-item
         label="重量"
         prop="product_info.weight"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model.number="form.product_info.weight"
@@ -108,7 +108,7 @@
       <el-form-item
         label="包装详情"
         prop="product_info.packaging_details"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model="form.product_info.packaging_details"
@@ -119,7 +119,7 @@
       <el-form-item
         label="保修信息"
         prop="product_info.warranty_info"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model="form.product_info.warranty_info"
@@ -130,7 +130,7 @@
       <el-form-item
         label="生产日期"
         prop="product_info.production_date"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-date-picker
           v-model="form.product_info.production_date"
@@ -142,7 +142,7 @@
       <el-form-item
         label="保质期"
         prop="product_info.expiration_date"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-date-picker
           v-model="form.product_info.expiration_date"
@@ -154,7 +154,7 @@
       <el-form-item
         label="商品分类ID"
         prop="product_info.category_id"
-        class="col-span-1 px-2"
+        class="col-span-1 "
       >
         <el-input
           v-model.number="form.product_info.category_id"
@@ -165,18 +165,97 @@
       <el-form-item
         label="商品首图"
         prop="product_info.main_image"
-        class="col-span-1 px-2"
+        class="col-span-1 "
         enctype="multipart/form-data"
       >
         <FileUploader
           :action="uploadUrl"
           :multiple="true"
-          :limit="3"
+          :limit="1"
           :before-upload="validateImage"
           @onSuccess="handleUploadSuccess"
           @onError="handleUploadError"
         />
       </el-form-item>
+
+      <el-form-item label="商品轮播图" 
+        prop="product_info.additional_images"
+        class="col-span-1 "
+        enctype="multipart/form-data">
+        <FileUploader
+          :action="uploadUrl"
+          :multiple="true"
+          :limit="5"
+          :before-upload="validateImage"
+          @onSuccess="CarouselhandleUploadSuccess"
+          @onError="CarouselhandleUploadError"
+          
+        />
+      </el-form-item>
+
+      <el-form-item
+        label="商品详情图片"
+        prop="product_info.details_images"
+        class="col-span-1 "
+        enctype="multipart/form-data"
+      >
+        <FileUploader
+          :action="uploadUrl"
+          :multiple="true"
+          :limit="5"
+          :before-upload="validateImage"
+          @onSuccess="DetailsImagesHandleUploadSuccess"
+          @onError="DetailsImagesHandleUploadError"
+        />
+      </el-form-item>
+
+      <el-form-item label="标签（使用逗号分隔,）" prop="product_info.tags">
+        <el-input v-model="form.product_info.tags" placeholder="请输入标签" />
+      </el-form-item>
+
+      <!-- 销售信息 -->
+      <h3 class="text-xl col-span-2 mb-3">销售信息</h3>
+      <el-form-item label="商品价格" prop="product_sales.price">
+        <el-input v-model.number="form.product_sales.price" placeholder="请输入商品价格" />
+      </el-form-item>
+
+      <el-form-item label="成本价格" prop="product_sales.cost_price">
+        <el-input v-model.number="form.product_sales.cost_price" placeholder="请输入成本价格" />
+      </el-form-item>
+
+      <el-form-item label="库存数量" prop="product_sales.stock_quantity">
+        <el-input-number v-model="form.product_sales.stock_quantity" controls-position="right" :min="0" placeholder="请输入库存数量" />
+      </el-form-item>
+
+      <el-form-item label="促销详情" prop="product_sales.promotion_details">
+        <el-input v-model="form.product_sales.promotion_details" placeholder="请输入促销详情" />
+      </el-form-item>
+
+      <el-form-item label="运费" prop="product_sales.shipping_fee">
+        <el-input v-model.number="form.product_sales.shipping_fee" placeholder="请输入运费" />
+      </el-form-item>
+
+
+       <!-- 库存信息 -->
+       <h3  class="text-xl col-span-2 mb-3">库存信息</h3>
+      <el-form-item label="仓库ID" prop="inventory.warehouse_id">
+        <el-input v-model.number="form.inventory.warehouse_id" placeholder="请输入仓库ID" />
+      </el-form-item>
+
+      <el-form-item label="安全库存量" prop="inventory.safety_stock">
+        <el-input v-model.number="form.inventory.safety_stock" placeholder="请输入安全库存量" />
+      </el-form-item>
+
+      <el-form-item label="补货阈值" prop="inventory.restock_threshold">
+        <el-input v-model.number="form.inventory.restock_threshold" placeholder="请输入补货阈值" />
+      </el-form-item>
+
+      <el-form-item class="col-span-2 mb-[50px] mt-[30px] justify-self-center">
+        <el-button type="primary" @click="submitForm">发布商品</el-button>
+        <el-button @click="resetForm">重置</el-button>
+      </el-form-item>
+
+      <div class="h-[200px] col-span-2"></div>
     </el-form>
   </div>
 </template>
@@ -211,7 +290,7 @@ interface ProductInfo {
   main_image: string;
   additional_images: UploadProps[];
   details_images: UploadProps[];
-  tags: string;
+  tags: string[];
 }
 
 interface ProductSales {
@@ -235,6 +314,7 @@ interface Inventory {
 }
 
 interface FormModel {
+[x: string]: any;
   product_info: ProductInfo;
   product_sales: ProductSales;
   inventory: Inventory;
@@ -242,15 +322,15 @@ interface FormModel {
 
 const form: FormModel = reactive({
   product_info: {
-    product_name: "",
-    description: "",
-    brand_id: 0,
-    shop_id: 0,
-    origin: "",
-    material: "",
-    size: "",
-    color: "",
-    weight: 0,
+    product_name: "huawei mate60 pro",
+    description: "牛逼",
+    brand_id: 2,
+    shop_id: 1813922145265389568,
+    origin: "中国",
+    material: "556",
+    size: "6.7",
+    color: "黑色",
+    weight: 255,
     packaging_details: "",
     warranty_info: "",
     production_date: "",
@@ -259,7 +339,7 @@ const form: FormModel = reactive({
     main_image: "",
     additional_images: [],
     details_images: [],
-    tags: "",
+    tags: ["手机","数码"],
   },
   product_sales: {
     price: 0,
@@ -273,9 +353,9 @@ const form: FormModel = reactive({
     shipping_fee: 0,
   },
   inventory: {
-    warehouse_id: 0,
-    stock_quantity: 0,
-    safety_stock: 0,
+    warehouse_id: 1816111338636840960,
+    stock_quantity: 45000,
+    safety_stock: 5000,
     last_restock_date: "",
     restock_threshold: 0,
   },
@@ -284,7 +364,7 @@ const form: FormModel = reactive({
 // 表单引用
 const formRef = ref<HTMLInputElement | null>(null);
 
-const uploadRef = ref<UploadInstance>();
+// const uploadRef = ref<UploadInstance>();
 
 // 表单验证规则
 const rules = reactive({
@@ -297,13 +377,18 @@ const rules = reactive({
 // 提交表单
 const submitForm = () => {
   if (!formRef.value) return;
-  formRef.value.validate((valid) => {
+  formRef.value.validate((valid: any) => {
     if (valid) {
       // 发送请求发布商品
-      console.log("发布商品:", form);
-      // 发送请求到后端
+
+      axios.post("/products",JSON.stringify(form)).then((response: AxiosResponse) => {
+        console.log(response.data);
+        ElMessage.success(response.data.data);
+      })
+      console.log("发布商品:", form.inventory);
+      // 发送请求到后端 
     } else {
-      console.log("error submit!!");
+      console.log("错误提交!!");
       return false;
     }
   });
@@ -315,7 +400,7 @@ const resetForm = () => {
   formRef.value.resetFields();
 };
 
-
+// 上传前验证图片格式
 function validateImage(file: File): boolean {
   // 验证图片是否为 JPEG 或 PNG
   const isJPGOrPNG = file.type === "image/jpeg" || file.type === "image/png";
@@ -331,16 +416,39 @@ function validateImage(file: File): boolean {
   }
   return true;
 }
-
+// 商品首页图片
 function handleUploadSuccess(response: any, file: any, fileList: any[]) {
   console.log("上传成功", response, file, fileList);
   // 处理上传成功后的逻辑
   // 假设后端返回的 URL 存储在 response.data.url
-  const imageUrl = response.data;
-  console.log("图片 URL:", imageUrl);
+  form.product_info.main_image = response.data;
+  console.log("图片 URL:", form.product_info.main_image);
+}
+function handleUploadError(error: any, file: any, fileList: any[]) {
+  console.error("上传失败", error, file, fileList);
+  // 处理上传失败后的逻辑
 }
 
-function handleUploadError(error: any, file: any, fileList: any[]) {
+// 商品轮播图图片
+function CarouselhandleUploadSuccess(response: any, file: any, fileList: any[]) {
+  // console.log("上传成功", response, file, fileList);
+  // 假设后端返回的 URL 存储在 response.data.url
+  form.product_info.additional_images.push(response.data);
+  console.log("图片 URL:", form.product_info.additional_images);
+}
+function CarouselhandleUploadError(error: any, file: any, fileList: any[]) {
+  console.error("上传失败", error, file, fileList);
+  // 处理上传失败后的逻辑
+}
+
+// 商品详细图
+function DetailsImagesHandleUploadSuccess(response: any, file: any, fileList: any[]) {
+  // console.log("上传成功", response, file, fileList);
+  // 假设后端返回的 URL 存储在 response.data.url
+  form.product_info.details_images.push(response.data);
+  console.log("图片 URL:", form.product_info.details_images);
+}
+function DetailsImagesHandleUploadError(error: any, file: any, fileList: any[]) {
   console.error("上传失败", error, file, fileList);
   // 处理上传失败后的逻辑
 }
@@ -378,5 +486,13 @@ onMounted(() => {
 
 .aaa {
   overflow-y: auto !important;
+}
+
+.el-form-item {
+  margin: 10px 20px;
+}
+
+.justify-self-center{
+  margin-top:60px!important;
 }
 </style>

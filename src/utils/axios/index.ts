@@ -16,7 +16,7 @@ instance.interceptors.request.use(
     // 携带 token
     const token = localStorage.getItem("token") || null;
     if (token) {
-      config.headers.Authorization = token;
+      config.headers.Authorization = "Bearer " + token;
     }
     // 检查是否为文件上传请求
     if (config.headers['Content-Type'] === 'multipart/form-data') {
@@ -38,7 +38,7 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => {
     // 响应成功
-    console.log(response)
+    // console.log(response)
     return response;
   },
   (error) => {

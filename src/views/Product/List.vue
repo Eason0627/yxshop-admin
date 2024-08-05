@@ -164,9 +164,9 @@ const product = {}
 
 const handlGetproductList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || '')
-  // console.log(user);
+  console.log(user);
   
-  if (user.role == "Customer") {
+  if (user.role == "Admin") {
     await axios.get("/products", product).then((res: AxiosResponse) => {
       tableData.value = res.data.data;
       tableData.value.forEach((item: Product) => {
