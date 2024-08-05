@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "268502",
+      "name": "身份证证件",
+      "font_class": "shenfengzheng",
+      "unicode": "e60c",
+      "unicode_decimal": 58892
+    },
+    {
       "icon_id": "2578460",
       "name": "优惠券",
       "font_class": "youhuiquan",

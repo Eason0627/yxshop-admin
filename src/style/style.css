@@ -15,6 +15,7 @@
   --theme-color: #197c68;
 
   --info-color: #000000e6;
+  --info-secondary-color: #0000008c;
   --info-border-color: #e6e9ef;
   --info-bg-color: #f2f4f8;
   --info-bg-hover-color: #e9ecf1;
@@ -31,10 +32,11 @@
   --success-border-color: #67c23ab9;
   --success-bg-color: #f0f9eb;
 
-  --primary-color: #409eff;
+  --primary-color: #0052d9;
+  --primary-secondary-color: #409eff;
   --primary-border-color: #409effb9;
   --primary-bg-color: #40a0ff1a;
-  --primary-bg-hover-color: #66b1ff;
+  --primary-bg-hover-color: #266fe8;
 
   --boxShadow-color: rgba(0, 0, 0, 0.1);
 }
