@@ -2,7 +2,7 @@
   <div class="container mx-auto m-4 p-4 bg-white shadow-lg flex flex-col ">
     <p class="text-left	 ">搜索商品：</p>
 
-    <div class="search mt-2 flex flex-nowrap justify-start items-center">
+    <div class="search mt-2 flex flex-nowrap justify-start items-center overflow-y-auto" >
       <el-input
         v-model="input"
         style="width: 240px"
@@ -65,7 +65,8 @@
       class="my-[20px]"
       ref="multipleTableRef"
       :data="tableData"
-      style="width: 100%"
+      style="width: 100% "
+      height="600"
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
@@ -104,9 +105,17 @@
 
     </el-table>
     
-    <el-pagination background layout="prev, pager, next" :total="1000" class="self-end" />
-    
-
+      <el-pagination 
+      background layout="total, prev, pager, next, jumper "
+      @size-change="handleSizeChange"
+      v-model:current-page="page.currentPage"
+      :page-sizes="[10, 10, 30, 50]"
+      v-model:page-size="page.pageSize"
+      :total="page.total" 
+      @current-change="handleCurrentChange"
+      class="self-end">
+      </el-pagination >
+   
   </div>
 </template>
 
@@ -116,6 +125,9 @@ import { Axios, AxiosResponse } from "axios";
 import User from '@/model/User';
 import Product from '@/model/Product';
 import { ElTable } from 'element-plus';
+5 //引入element-plus中文包
+import locale from 'element-plus/lib/locale/lang/zh-cn' 
+
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
@@ -148,6 +160,7 @@ const endTime = ref('')
 
 const Search  = ref('')
 
+
 // 示例数据
 let tableData: Ref<Product[]> = ref([] as Product[]);
 
@@ -159,20 +172,49 @@ const handleSelectionChange = (val: User[]) => {
   multipleSelection.value = val
 }
 
+
 // 定义请求体
 const product = {}
 
+const page = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  currentPage: 1,
+  total: 0
+})
 const handlGetproductList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || '')
   console.log(user);
   
   if (user.role == "Admin") {
-    await axios.get("/products", product).then((res: AxiosResponse) => {
-      tableData.value = res.data.data;
+    // const params = new URLSearchParams();
+    // params.append('product', JSON.stringify(product));
+    // params.append('pageNum', 1);
+    // params.append('pageSize', 10);
+
+    await axios.post("/products/getall",  product,{
+            params: {
+                pageNum: page.pageNum,
+                pageSize: page.pageSize
+            }
+          }).then((res: AxiosResponse) => {
+            page.total = res.data.data.total;
+      tableData.value = res.data.data.list;
       tableData.value.forEach((item: Product) => {
         item.additional_images = JSON.parse(item.additional_images || '')
         item.details_images = JSON.parse(item.details_images || '')
         item.tags = JSON.parse(item.tags || '')
+  
+        item.updateTime = formatToCustomString(new Date(
+          Number(item.createTime[0]), // 转换年份
+          Number(item.createTime[1]) - 1, // 转换月份，并减1以符合 JavaScript 中月份从0开始的规则
+          Number(item.createTime[2]), // 转换日
+          Number(item.createTime[3]), // 转换小时
+          Number(item.createTime[4]), // 转换分钟
+          Number(item.createTime[5])  // 转换秒
+        ))
+        
+        
       })
       console.log(tableData);
     })
@@ -200,6 +242,27 @@ onMounted(() => {
   handlGetproductList();
 });
 
+// 格式化日期的函数
+function formatToCustomString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份是从 0 开始的，所以加 1
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+}
+
+// 分页
+function handleCurrentChange(val: number) {
+  page.pageNum = val
+  handlGetproductList();
+}
+
+function handleSizeChange(val: number) {
+  page.currentPage = val
+}
 </script>
 
 <style scoped>

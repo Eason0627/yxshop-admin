@@ -1,4 +1,6 @@
 export default interface Product {
+createTime: string;
+updateTime: string;
   product_id?: number; // 商品ID
   product_name?: string; // 商品名称
   description?: string; // 商品描述

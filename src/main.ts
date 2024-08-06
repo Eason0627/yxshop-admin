@@ -28,6 +28,7 @@ import instance from "./utils/axios/index";
 app.provide("axios", instance);
 
 // ElementPlus 组件库相关
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
@@ -55,4 +56,7 @@ app.config.errorHandler = (
   }
 };
 
-app.use(router).use(pinia).use(ElementPlus).mount("#app");
+app.use(router).use(pinia).use(ElementPlus, {
+  locale: zhCn,
+}
+).mount("#app");
