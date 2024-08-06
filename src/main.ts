@@ -15,6 +15,7 @@ import defaultShopImage from "@/assets/shop.jpg";
 app.provide("defaultAvatar", defaultAvatar);
 app.provide("defaultShopImage", defaultShopImage);
 
+
 // 导入 vue-router
 import router from "./router";
 
@@ -27,10 +28,15 @@ setActivePinia(pinia); // 手动激活 Pinia，对于非组件环境特别重要
 import instance from "./utils/axios/index";
 app.provide("axios", instance);
 
+// 导入 Echarts
+import * as echarts from "echarts";
+app.provide("echarts", echarts);
+
 // ElementPlus 组件库相关
 import ElementPlus from "element-plus";
 import "element-plus/dist/index.css";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
+import zhCn from "element-plus/es/locale/lang/zh-cn";
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component);
 }
@@ -55,4 +61,10 @@ app.config.errorHandler = (
   }
 };
 
-app.use(router).use(pinia).use(ElementPlus).mount("#app");
+app
+  .use(router)
+  .use(pinia)
+  .use(ElementPlus, {
+    locale: zhCn,
+  })
+  .mount("#app");
