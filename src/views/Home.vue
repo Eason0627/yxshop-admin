@@ -4,9 +4,11 @@
     <div class="content flex-1">
       <TopTools></TopTools>
       <HistoryRouter></HistoryRouter>
-      <Transition>
-        <router-view></router-view>
-      </Transition>
+      <router-view v-slot="{ Component }">
+        <transition>
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </div>
   </div>
 </template>
