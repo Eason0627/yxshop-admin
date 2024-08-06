@@ -203,10 +203,8 @@ const handlGetproductList = async () => {
         page.total = res.data.data.total;
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
-          item.additional_images = JSON.parse(item.additional_images || "");
-          item.details_images = JSON.parse(item.details_images || "");
+          item.main_image = JSON.parse(item.main_image || "");
           item.tags = JSON.parse(item.tags || "");
-
           item.update_time = formatDate(new Date(), "yyyy-MM-dd HH:mm:ss");
         });
       });
@@ -231,7 +229,7 @@ onMounted(() => {
   handlGetproductList();
 });
 
-// 格式化日期的函数
+// 格式化日期的函数git p
 // function formatToCustomString(date: Date): string {
 //   const year = date.getFullYear();
 //   const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份是从 0 开始的，所以加 1

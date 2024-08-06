@@ -70,7 +70,7 @@
                 class="px-2 py-1 mx-2 text-white text-xs hover:underline"
                 :style="{
                   backgroundColor:
-                    item.stock_quantity === 0
+                    (item && item.stock_quantity) === 0
                       ? 'var(--error-color)'
                       : (item.stock_quantity as number) <
                       (item.safety_stock as number)
@@ -143,7 +143,7 @@
 </template>
 <script setup lang="ts">
 import Product from "@/model/Product";
-import { onMounted } from "vue";
+import { onBeforeMount } from "vue";
 import { ref, reactive } from "vue";
 
 // 立即补货商品
@@ -239,7 +239,7 @@ function compare_sold_quantity(product: Product, list: Product[]): Product[] {
   return list;
 }
 
-onMounted(() => {
+onBeforeMount(() => {
   // 处理库存告急商品, 获取最紧急的补货商品
   stock_warning.forEach((item: Product) => {
     if (
