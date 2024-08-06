@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import TimeRange from "./TimeRange.vue";
 import Sale from "./Left/Sale.vue";
-import { ref, reactive, inject, onMounted } from "vue";
+import { ref, inject, onMounted } from "vue";
 
 const echarts = inject<any>("echarts");
 const start = ref("");

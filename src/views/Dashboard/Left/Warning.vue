@@ -14,21 +14,27 @@
     <div class="content grid grid-cols-2 gap-4 mt-4">
       <div class="left">
         <div class="category grid grid-cols-3 gap-4">
-          <div class="promptly p-4 bg-[--info-bg-color] cursor-pointer hover:bg-[--info-bg-hover-color] transition-all duration-300]">
+          <div
+            class="promptly p-4 bg-[--info-bg-color] cursor-pointer hover:bg-[--info-bg-hover-color] transition-all duration-300]"
+          >
             <div class="text mb-2 text-sm">库存已空</div>
             <div class="num text-sm">
               <span class="mr-2 font-bold text-xl">{{ promptlyProduct }}</span>
               <span>件</span>
             </div>
           </div>
-          <div class="soon p-4 bg-[--info-bg-color] cursor-pointer hover:bg-[--info-bg-hover-color] transition-all duration-300]">
+          <div
+            class="soon p-4 bg-[--info-bg-color] cursor-pointer hover:bg-[--info-bg-hover-color] transition-all duration-300]"
+          >
             <div class="text mb-2 text-sm">库存告急</div>
             <div class="num text-sm">
               <span class="mr-2 font-bold text-xl">{{ soonProduct }}</span>
               <span>件</span>
             </div>
           </div>
-          <div class="warning p-4 bg-[--info-bg-color] cursor-pointer hover:bg-[--info-bg-hover-color] transition-all duration-300]">
+          <div
+            class="warning p-4 bg-[--info-bg-color] cursor-pointer hover:bg-[--info-bg-hover-color] transition-all duration-300]"
+          >
             <div class="text mb-2 text-sm">尽快补货</div>
             <div class="num text-sm">
               <span class="mr-2 font-bold text-xl">{{ warningProduct }}</span>

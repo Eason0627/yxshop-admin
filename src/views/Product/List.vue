@@ -11,21 +11,6 @@
             clearable
           />
 
-          <el-select
-            class="ml-[10px]"
-            v-model="value"
-            clearable
-            placeholder="Select"
-            style="width: 100px"
-          >
-            <el-option
-              v-for="item in options"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-
           <el-input
             class="border-r-0"
             v-model="input2"
@@ -34,7 +19,7 @@
             clearable
           />
 
-          <Search class="w-[30px] h-[30px] px-1 border mr-3" />
+          <!-- <Search class="w-[30px] h-[30px] px-1 border mr-3" /> -->
 
           <div class="demo-time-range">
             <el-time-select
@@ -67,28 +52,13 @@
           class="my-[20px]"
           ref="multipleTableRef"
           :data="tableData"
-          :default-sort="{ prop: 'date', order: 'descending' }"
+          style="width: 100%"
           border
-          stripe
+          height="600"
+          max-height="600"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" />
-
-          <el-table-column label="商品图片" width="120">
-            <template #default="scope">
-              <img
-                :src="scope.row.main_image"
-                alt="商品图片"
-                style="max-width: 100%; height: auto"
-              />
-            </template>
-          </el-table-column>
-
-          <el-table-column
-            property="product_name"
-            label="商品名称"
-            width="120"
-          />
 
           <el-table-column property="brand_id" label="品牌" width="120" />
 
@@ -101,7 +71,12 @@
 
           <el-table-column property="stock_quantity" label="库存" width="120" />
 
-          <el-table-column prop="updateTime" label="修改日期" sortable width="120">
+          <el-table-column
+            prop="updateTime"
+            label="修改日期"
+            sortable
+            width="120"
+          >
             <template #default="scope">{{ scope.row.updateTime }}</template>
           </el-table-column>
 
@@ -114,7 +89,7 @@
           />
 
           <!-- 添加操作列 -->
-          <el-table-column fixed label="操作" width="120">
+          <el-table-column fixed="right" label="操作" width="220">
             <template #default="scope">
               <el-button
                 size="small"
@@ -132,13 +107,19 @@
           </el-table-column>
         </el-table>
       </div>
-      <div class="pagination">
+      <div class="tableFoot flex justify-end p-4">
         <el-pagination
           background
-          layout="prev, pager, next"
-          :total="1000"
+          layout="total, prev, pager, next, jumper "
+          @size-change="handleSizeChange"
+          v-model:current-page="page.currentPage"
+          :page-sizes="[10, 20, 30, 50]"
+          v-model:page-size="page.pageSize"
+          :total="page.total"
+          @current-change="handleCurrentChange"
           class="self-end"
-        />
+        >
+        </el-pagination>
       </div>
     </div>
   </div>
@@ -147,6 +128,8 @@
 <script setup lang="ts">
 import { ref, reactive, inject, onMounted } from "vue";
 import { Axios, AxiosResponse } from "axios";
+
+import { formatDate } from "@/utils/formatDate";
 import User from "@/model/User";
 import Product from "@/model/Product";
 import { ElTable } from "element-plus";
@@ -193,20 +176,40 @@ const handleSelectionChange = (val: User[]) => {
 // 定义请求体
 const product = {};
 
+const page = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  currentPage: 1,
+  total: 0,
+});
 const handlGetproductList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
-  // console.log(user);
+  console.log(user);
 
-  if (user.role == "Customer") {
-    await axios.get("/products", product).then((res: AxiosResponse) => {
-      tableData.value = res.data.data;
-      tableData.value.forEach((item: Product) => {
-        item.additional_images = JSON.parse(item.additional_images || "");
-        item.details_images = JSON.parse(item.details_images || "");
-        item.tags = JSON.parse(item.tags || "");
+  if (user.role == "Admin") {
+    // const params = new URLSearchParams();
+    // params.append('product', JSON.stringify(product));
+    // params.append('pageNum', 1);
+    // params.append('pageSize', 10);
+
+    await axios
+      .post("/products/getall", product, {
+        params: {
+          pageNum: page.pageNum,
+          pageSize: page.pageSize,
+        },
+      })
+      .then((res: AxiosResponse) => {
+        page.total = res.data.data.total;
+        tableData.value = res.data.data.list;
+        tableData.value.forEach((item: Product) => {
+          item.additional_images = JSON.parse(item.additional_images || "");
+          item.details_images = JSON.parse(item.details_images || "");
+          item.tags = JSON.parse(item.tags || "");
+
+          item.update_time = formatDate(new Date(), "yyyy-MM-dd HH:mm:ss");
+        });
       });
-      console.log(tableData);
-    });
   }
   if (user.role == "ShopOwner") {
   }
@@ -227,6 +230,28 @@ const deleteRow = (index: any, row: any) => {
 onMounted(() => {
   handlGetproductList();
 });
+
+// 格式化日期的函数
+// function formatToCustomString(date: Date): string {
+//   const year = date.getFullYear();
+//   const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份是从 0 开始的，所以加 1
+//   const day = String(date.getDate()).padStart(2, "0");
+//   const hours = String(date.getHours()).padStart(2, "0");
+//   const minutes = String(date.getMinutes()).padStart(2, "0");
+//   const seconds = String(date.getSeconds()).padStart(2, "0");
+
+//   return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+// }
+
+// 分页
+function handleCurrentChange(val: number) {
+  page.pageNum = val;
+  handlGetproductList();
+}
+
+function handleSizeChange(val: number) {
+  page.currentPage = val;
+}
 </script>
 
 <style scoped>

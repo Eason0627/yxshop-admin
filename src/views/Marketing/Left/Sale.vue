@@ -7,7 +7,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, onMounted, inject, watch } from "vue";
+import { ref, inject, watch } from "vue";
 // 注入 echarts
 const echarts = inject<any>("echarts");
 // 接收timer
