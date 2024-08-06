@@ -125,8 +125,7 @@ import { Axios, AxiosResponse } from "axios";
 import User from '@/model/User';
 import Product from '@/model/Product';
 import { ElTable } from 'element-plus';
-5 //引入element-plus中文包
-import locale from 'element-plus/lib/locale/lang/zh-cn' 
+
 
 
 // 获取 axios
@@ -205,14 +204,7 @@ const handlGetproductList = async () => {
         item.details_images = JSON.parse(item.details_images || '')
         item.tags = JSON.parse(item.tags || '')
   
-        item.updateTime = formatToCustomString(new Date(
-          Number(item.createTime[0]), // 转换年份
-          Number(item.createTime[1]) - 1, // 转换月份，并减1以符合 JavaScript 中月份从0开始的规则
-          Number(item.createTime[2]), // 转换日
-          Number(item.createTime[3]), // 转换小时
-          Number(item.createTime[4]), // 转换分钟
-          Number(item.createTime[5])  // 转换秒
-        ))
+        item.updateTime = for
         
         
       })
