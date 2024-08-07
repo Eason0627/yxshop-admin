@@ -255,39 +255,43 @@ const submitForm = () => {
      // 上传图片
   const promises = [];
   if (uploadRef1.value && typeof uploadRef1.value.submitUpload === 'function') {
-    uploadRef1.value.submitUpload();
+    promises.push(uploadRef1.value.submitUpload());
+    // console.log(1);
   }
   if (uploadRef2.value && typeof uploadRef2.value.submitUpload === 'function') {
-    uploadRef2.value.submitUpload();
+    promises.push(uploadRef2.value.submitUpload());
+    // console.log(2);
   }
   if (uploadRef3.value && typeof uploadRef3.value.submitUpload === 'function') {
-    uploadRef3.value.submitUpload();
+    promises.push(uploadRef3.value.submitUpload());
+    // console.log(3);
+
   }
 
+  Promise.all(promises).then(() => {
+    console.log(4);
 
-  if(!form.product_info.additional_images){
+    // 所有图片上传成功后，继续验证表单
+    if (!formRef.value) return;
+    // console.log(form.product_info.main_image);
     setTimeout(()=>{
-      // 验证表单
-      if (!formRef.value) return;
-      formRef.value.validate(async(valid: boolean) => {
-        if (valid) {
-          // 发送请求发布商品
-          await axios.post("/products", JSON.stringify(form))
-            .then((response: AxiosResponse) => {
-              console.log(response.data);
-              ElMessage.success(response.data.data);
-            })
-            .catch((error) => {
-              console.error('发送请求时发生错误:', error);
-            });
-        } else {
-          console.log("错误提交!!");
-          return false;
-        }
-      });
-    },2000)
-  }
-  // 等待所有图片上传完成
+      console.log(form.product_info.main_image)
+      formRef.value.validate((valid: boolean) => {
+    // console.log(5);
+      if (valid) {
+    // console.log(6);
+        // 发送请求发布商品
+         axios.post("/products", JSON.stringify(form))
+          .then((response: AxiosResponse) => {
+           console.log(response.data);
+          })
+      }
+    })
+    },1000)
+    
+    
+  })
+
  
       
   
