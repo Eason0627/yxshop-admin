@@ -1,68 +1,86 @@
 <template>
-  <div class="list w-full h-full p-3 pb-24 overflow-y-auto">
-    <div class="content flex flex-col w-full h-full bg-white">
-      <div class="tools p-4">
+  <div class="list w-full h-full p-3 pb-24">
+    <div
+      class="content flex flex-col w-full h-full border-[1px] border-[--info-border-color] rounded-md overflow-y-auto bg-white"
+    >
+      <div class="tools p-4 mb-4">
         <p class="text-left">搜索商品：</p>
         <div class="search mt-2 flex flex-nowrap justify-start items-center">
-          <el-input
-            v-model="input"
-            style="width: 240px"
-            placeholder="请输入..."
-            clearable
-          />
-
-          <el-input
-            class="border-r-0"
-            v-model="input2"
-            style="width: 200px"
-            placeholder="请输入..."
-            clearable
-          />
-
-          <!-- <Search class="w-[30px] h-[30px] px-1 border mr-3" /> -->
-
-          <div class="demo-time-range">
-            <el-time-select
-              v-model="startTime"
-              style="width: 120px"
-              :max-time="endTime"
-              class="mr-4"
-              placeholder="Start time"
-              start="08:30"
-              step="00:15"
-              end="18:30"
-            />
-            <el-time-select
-              v-model="endTime"
-              style="width: 120px"
-              :min-time="startTime"
-              placeholder="End time"
-              start="08:30"
-              step="00:15"
-              end="18:30"
+          <div class="option">
+            <el-input
+              v-model="searchText"
+              style="max-width: 300px"
+              placeholder="请输入内容"
+              class="input-with-select"
+            >
+              <template #prepend>
+                <el-select
+                  v-model="searchType"
+                  placeholder="搜索类型"
+                  style="width: 120px"
+                >
+                  <el-option
+                    v-for="item in searchList"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+              </template>
+            </el-input>
+          </div>
+          <div class="option flex items-center">
+            <span class="label px-2"> 时间范围: </span>
+            <el-date-picker
+              v-model="time"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始时间"
+              end-placeholder="结束时间"
+              style="width: 300px"
             />
           </div>
-          <el-button :icon="Search" type="primary" class="ml-2">搜索</el-button>
-
-          <el-button type="danger" plain>Clear</el-button>
+          <div class="option">
+            <el-button :icon="Search" type="primary" class="ml-2"
+              >搜索</el-button
+            >
+            <el-button type="danger" plain>清除</el-button>
+          </div>
         </div>
       </div>
       <div class="tableBox flex-1">
         <el-table
-          class="my-[20px]"
+          class="border-t-[1px] border-[--info-border-color]"
           ref="multipleTableRef"
           :data="tableData"
           style="width: 100%"
-          border
           height="600"
           max-height="600"
+          :cell-style="{ textAlign: 'center' }"
+          :header-cell-style="{ 'text-align': 'center' }"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" />
 
+          <el-table-column label="商品图片" width="88">
+            <template #default="scope">
+              <el-image
+                :src="scope.row.main_image"
+                :zoom-rate="1.2"
+                :max-scale="7"
+                :min-scale="0.2"
+                preview-teleported
+                :preview-src-list="[scope.row.main_image]"
+                fit="cover"
+                style="width: 64px; height: 64px"
+              />
+            </template>
+          </el-table-column>
+
           <el-table-column property="brand_id" label="品牌" width="120" />
 
           <el-table-column property="price" label="价格/元" width="120" />
+
           <el-table-column
             property="cost_price"
             label="成本价格/元"
@@ -75,12 +93,12 @@
             prop="updateTime"
             label="修改日期"
             sortable
-            width="120"
+            width="160"
           >
             <template #default="scope">{{ scope.row.updateTime }}</template>
           </el-table-column>
 
-          <el-table-column property="category_id" label="分类" />
+          <el-table-column property="category_id" label="分类" width="120" />
 
           <el-table-column
             show-overflow-tooltip
@@ -89,7 +107,7 @@
           />
 
           <!-- 添加操作列 -->
-          <el-table-column fixed="right" label="操作" width="220">
+          <el-table-column label="操作" width="220">
             <template #default="scope">
               <el-button
                 size="small"
@@ -107,7 +125,9 @@
           </el-table-column>
         </el-table>
       </div>
-      <div class="tableFoot flex justify-end p-4">
+      <div
+        class="tableFoot flex justify-end p-4 border-t-[1px] border-[--info-border-color] overflow-y-auto"
+      >
         <el-pagination
           background
           layout="total, prev, pager, next, jumper "
@@ -126,10 +146,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted } from "vue";
+import { ref, reactive, inject, onMounted, Ref } from "vue";
 import { Axios, AxiosResponse } from "axios";
-
-import { formatDate } from "@/utils/formatDate";
 import User from "@/model/User";
 import Product from "@/model/Product";
 import { ElTable } from "element-plus";
@@ -137,29 +155,24 @@ import { ElTable } from "element-plus";
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
 
-const input = ref("");
+const searchText = ref("");
+const searchType = ref("");
 
-const value = ref("");
+const time = ref("");
 
-const options = [
-  {
-    value: "product_id",
-    label: "商品id",
-  },
+const searchList = [
   {
     value: "product_name",
     label: "商品名称",
   },
   {
-    value: "price",
-    label: "商品价格",
+    value: "brand",
+    label: "商品品牌",
   },
 ];
 
-const input2 = ref("");
-
-const startTime = ref("");
-const endTime = ref("");
+// const startTime = ref("");
+// const endTime = ref("");
 
 const Search = ref("");
 
@@ -184,14 +197,9 @@ const page = reactive({
 });
 const handlGetproductList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
-  console.log(user);
+  // console.log(user);
 
   if (user.role == "Admin") {
-    // const params = new URLSearchParams();
-    // params.append('product', JSON.stringify(product));
-    // params.append('pageNum', 1);
-    // params.append('pageSize', 10);
-
     await axios
       .post("/products/getall", product, {
         params: {
@@ -203,9 +211,8 @@ const handlGetproductList = async () => {
         page.total = res.data.data.total;
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
-          item.main_image = JSON.parse(item.main_image || "");
           item.tags = JSON.parse(item.tags || "");
-          item.update_time = formatDate(new Date(), "yyyy-MM-dd HH:mm:ss");
+          item.updateTime = (item.updateTime as Array<number>).join("-");
         });
       });
   }
@@ -252,28 +259,4 @@ function handleSizeChange(val: number) {
 }
 </script>
 
-<style scoped>
-/* 添加一些样式 */
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  padding: 5px 10px;
-  border: 1px solid #a6a8ad;
-  transition: all 0.3s;
-}
-
-li:hover {
-  background: #1f9fff;
-  color: aliceblue;
-}
-
-/* 为了确保 Tailwind CSS 类正确应用 */
-table {
-  --tw-border-spacing-x: 0;
-  --tw-border-spacing-y: 0;
-  border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
-}
-</style>
+<style lang="scss" scoped></style>
