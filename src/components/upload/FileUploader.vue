@@ -1,21 +1,14 @@
 <template>
-  <el-upload
-    :action="uploadAction"
-    :multiple="multiple"
-    :headers="headers"
-    :limit="limit"
-    :file-list="fileList"
-    :auto-upload="true"
-    :on-change="handleChange"
-    :on-remove="handleRemove"
-    :before-upload="beforeUpload"
-    :on-exceed="handleExceed"
-    :on-success="handleSuccess"
-    :on-error="handleError"
-    list-type="picture-card"
-    :class="{ 'is-disabled': disabled }"
-  >
-    <el-icon><UploadFilled /></el-icon>
+  <el-upload 
+    ref="uploadRef"
+    :action="uploadAction" :multiple="multiple" :headers="headers" :limit="limit" :file-list="fileList"
+    :auto-upload="auto" :on-change="handleChange" :on-remove="handleRemove" :before-upload="beforeUpload"
+    :on-exceed="handleExceed" :on-success="handleSuccess" :on-error="handleError" list-type="picture-card"
+    :class="{ 'is-disabled': disabled }">
+    <el-icon>
+      <UploadFilled />
+    </el-icon>
+    <span @click= "submitUpload"></span>
   </el-upload>
 </template>
 
@@ -28,14 +21,15 @@ interface Props {
   action?: string;
   multiple?: boolean;
   limit?: number;
+  auto?: boolean;
   beforeUpload?: (file: any) => boolean;
   onSuccess?: (response: any, file: any, fileList: any[]) => void;
-  onError?: (error: any, file: any, fileList: any[]) => void; 
+  onError?: (error: any, file: any, fileList: any[]) => void;
 }
 
 interface Emits {
   (e: "change", file: any, fileList: any[]): void;
-  (e: "update:modelValue", fileList: any[]): void;
+  (e: "update:modelValue", file: any, fileList: any[]): void;
   (e: "onSuccess", response: any, file: any, fileList: any[]): void;
   (e: "onError", error: any, file: any, fileList: any[]): void;
 }
@@ -45,15 +39,17 @@ const props = withDefaults(defineProps<Props>(), {
   action: "",
   multiple: false,
   limit: 5,
+  auto: false,
   beforeUpload: () => true,
-  onSuccess: () => {},
-  onError: () => {},
+  onSuccess: () => { },
+  onError: () => { },
 });
 
 const emit = defineEmits<Emits>();
 
 const fileList = ref<any[]>([]);
 const uploadAction = ref(props.action);
+const uploadRef = ref(null);
 
 const headers = ref({
   Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -63,19 +59,29 @@ watchEffect(() => {
   uploadAction.value = props.action;
 });
 
+// 提交上传
+const submitUpload =  () => {
+  if (uploadRef.value) {
+     uploadRef.value.submit();
+  }
+};
+
+
+defineExpose({
+  submitUpload,
+});
 function handleChange(file: any, fileList: any) {
   emit("change", file, fileList);
 }
 
 function handleRemove(file: any, fileList: any) {
   fileList.value = fileList.filter((f: any) => f.uid !== file.uid);
-  emit("update:modelValue", fileList.value);
+  emit("update:modelValue", file, fileList.value);
 }
 
 function handleExceed(files: any, fileList: any) {
   ElMessage.warning(
-    `当前限制选择 ${props.limit} 个文件，本次选择了 ${
-      files.length
+    `当前限制选择 ${props.limit} 个文件，本次选择了 ${files.length
     } 个文件，共选择了 ${files.length + fileList.length} 个文件`
   );
 }
