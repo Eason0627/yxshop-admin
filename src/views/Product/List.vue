@@ -195,27 +195,5 @@ function handleSizeChange(val: number) {
 </script>
 
 <style scoped>
-/* 添加一些样式 */
-ul {
-  list-style-type: none;
-  padding: 0;
-}
 
-li {
-  padding: 5px 10px;
-  border: 1px solid #a6a8ad;
-  transition: all 0.3s;
-}
-
-li:hover {
-  background: #1f9fff;
-  color: aliceblue;
-}
-
-/* 为了确保 Tailwind CSS 类正确应用 */
-table {
-  --tw-border-spacing-x: 0;
-  --tw-border-spacing-y: 0;
-  border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
-}
 </style>
