@@ -13,20 +13,28 @@
         <el-input v-model="form.product_info.description" type="textarea" placeholder="请输入商品描述" />
       </el-form-item>
 
-      <el-form-item label="品牌ID" prop="product_info.brand_id" class="flex-none w-1/5 ">
+      <el-form-item label="品牌名称：" prop="product_info.brand_id" class="flex-none w-1/5 ">
         <!-- <el-input v-model.number="form.product_info.brand_id" placeholder="请输入品牌ID" /> -->
-        <el-select v-model="form.product_info.brand_id" placeholder="Select" style="width: 240px">
+        <el-select v-model="form.product_info.brand_id" placeholder="选择品牌" style="width: 240px">
           <el-option
-            :v-for="item in brandLists.values"
-            :key="item.value.brand_name"
-            :label="item.brand_name"
-            :value="item.brand_id"
+            v-for="brand in brandList"
+            :key="brand.brand_id"
+            :label="brand.brand_name"
+            :value="brand.brand_id"
           />
         </el-select>
       </el-form-item>
 
-      <el-form-item label="店铺ID" prop="product_info.shop_id" class="flex-none w-1/4">
-        <el-input v-model.number="form.product_info.shop_id" placeholder="请输入店铺ID" />
+      <el-form-item label="店铺名称：" prop="product_info.shop_id" class="flex-none w-1/4">
+        <!-- <el-input v-model.number="form.product_info.shop_id" placeholder="请输入店铺ID" /> -->
+        <el-select v-model="form.product_info.shop_id" placeholder="选择店铺" style="width: 240px">
+          <el-option
+            v-for="shop in shopList"
+            :key="shop.shop_id"
+            :label="shop.shop_name"
+            :value="shop.shop_id"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item label="原产地" prop="product_info.origin" class="flex-none w-1/4 ">
@@ -140,8 +148,16 @@
 
       <!-- 库存信息 -->
       <h3 class="text-xl col-span-2 mb-3">库存信息</h3>
-      <el-form-item label="仓库ID" prop="inventory.warehouse_id" class="flex-none w-1/4 ">
-        <el-input v-model.number="form.inventory.warehouse_id" placeholder="请输入仓库ID" />
+      <el-form-item label="仓库名称：" prop="inventory.warehouse_id" class="flex-none w-1/4 ">
+        <!-- <el-input v-model.number="form.inventory.warehouse_id" placeholder="请输入仓库ID" /> -->
+        <el-select v-model="form.product_info.warehouse_id" placeholder="选择仓库" style="width: 240px">
+          <el-option
+            v-for="warehouse in warehouseList"
+            :key="warehouse.warehouse_id"
+            :label="warehouse.warehouse_name"
+            :value="warehouse.warehouse_id"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item label="安全库存量" prop="inventory.safety_stock" class="flex-none w-1/4 ">
@@ -163,9 +179,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted,nextTick } from "vue";
+import { ref, reactive, inject, onMounted,nextTick  } from "vue";
 import { Axios, AxiosResponse } from "axios";
-import { ElMessage, UploadProps, type UploadInstance } from "element-plus";
+import { ElMessage, UploadProps, } from "element-plus";
 import { ElInput } from 'element-plus'
 import FileUploader from "@/components/upload/FileUploader.vue";
 
@@ -175,10 +191,11 @@ const axios: Axios = inject("axios") as Axios;
 const uploadUrl = "http://localhost:8080/upload";
 // 数据模型
 interface ProductInfo {
+warehouse_id: unknown;
   product_name: string;
   description: string;
-  brand_id: number;
-  shop_id: number;
+  brand_id: string;
+  shop_id: string;
   origin: string;
   material: string;
   size: string;
@@ -188,7 +205,7 @@ interface ProductInfo {
   warranty_info: string;
   production_date: string;
   expiration_date: string;
-  category_id: number;
+  category_id: string;
   main_image: string;
   additional_images: UploadProps[];
   details_images: UploadProps[];
@@ -309,11 +326,13 @@ interface Warehouse {
 }
 
 
+
+
 // 响应式引用数组
-let brandLists = ref<Brand[]>([]);
-// const brandList: Brand[] = ref new Array<Brand>();
-let shopLists:Shop[] = ref([])
-let warehouseLists:Warehouse[] = ref([])
+const brandList = ref<Brand[]>([]);
+const shopList = ref<Shop[]>([]);
+const warehouseList = ref<Warehouse[]>([]);
+
 
 /**tags */
 const inputValue = ref('')
@@ -516,7 +535,7 @@ const handleBrand = () => {
         });
       };
       // 处理去重品牌
-      const brandList: Brand[] = removeDuplicates(
+      const brandListData: Brand[] = removeDuplicates(
         Data
           .filter(item => item.brand_name && item.brand_id)
           .map(item => ({
@@ -526,9 +545,8 @@ const handleBrand = () => {
         'brand_id'
       );
 
-      brandLists.value = brandList
         // 处理去重店铺
-      const shopList: Shop[] = removeDuplicates(
+      const shopListData: Shop[] = removeDuplicates(
         Data
           .filter(item => item.shop_name && item.shop_id)
           .map(item => ({
@@ -539,7 +557,7 @@ const handleBrand = () => {
       );
 
       // 处理去重仓库
-      const warehouseList: Warehouse[] = removeDuplicates(
+      const warehouseListData: Warehouse[] = removeDuplicates(
         Data
           .filter(item => item.warehouse_name && item.warehouse_id)
           .map(item => ({
@@ -548,9 +566,13 @@ const handleBrand = () => {
           })),
         'warehouse_id'
       );
-      console.log(brandLists)
-      // console.log(shopList)
-      // console.log(warehouseList)
+      brandList.value = brandListData
+      shopList.value = shopListData
+      warehouseList.value = warehouseListData
+
+      // console.log(brandList.value)
+      // console.log(shopList.value)
+      // console.log(warehouseList.value)
     })
    .catch((error: any) => {
       console.error(error);
