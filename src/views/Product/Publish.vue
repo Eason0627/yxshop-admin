@@ -1,13 +1,16 @@
 <template>
   <div class="container h-screen mx-auto bg-white m-[20px] p-3 shadow-lg aaa">
-    <el-form class="flex flex-col overflow-y-auto" ref="formRef" :model="form" :rules="rules"
-      label-position="top" label-width="120px" enctype="multipart/form-data">
+    <el-form class="flex flex-col overflow-y-auto " ref="formRef" :model="form" :rules="rules" 
+      label-position="top" label-width="auto" enctype="multipart/form-data">
       <!-- 商品信息 -->
       <h3 class="text-xl col-span-5 mb-4">商品信息</h3>
       
-      <el-form-item label="商品名称" prop="product_info.product_name" class="flex-none w-1/4 ">
-        <el-input v-model="form.product_info.product_name" placeholder="请输入商品名称" />
-      </el-form-item>
+      
+      <div class="flex flex-wrap">
+        <el-form-item label="商品名称" prop="product_info.product_name" class="flex-none w-1/4 ">
+          <el-input v-model="form.product_info.product_name" placeholder="请输入商品名称" />
+        </el-form-item>
+      </div>
       
       <el-form-item label="商品描述" prop="product_info.description" class="flex-none w-2/5">
         <el-input v-model="form.product_info.description" type="textarea" placeholder="请输入商品描述" />
@@ -73,8 +76,16 @@
         <el-date-picker v-model="form.product_info.expiration_date" type="date" placeholder="选择日期" />
       </el-form-item>
 
-      <el-form-item label="商品分类ID" prop="product_info.category_id" class="flex-none w-1/4 ">
-        <el-input v-model.number="form.product_info.category_id" placeholder="请输入商品分类ID" />
+      <el-form-item label="商品分类" prop="product_info.category_id" class="flex-none w-1/4 ">
+        <!-- <el-input v-model.number="form.product_info.category_id" placeholder="请输入商品分类ID" /> -->
+        <el-select v-model="form.product_info.category_id" placeholder="选择分类" style="width: 240px">
+          <el-option
+            v-for="category in categoryList"
+            :key="category.category_id"
+            :label="category.category_name"
+            :value="category.category_id"
+          />
+        </el-select>
       </el-form-item>
 
       <el-form-item label="商品首图（只能上传一张）" prop="product_info.main_image" class="col-span-1 " enctype="multipart/form-data">
@@ -287,6 +298,15 @@ const rules = reactive({
   "product_info.product_name": [
     { required: true, message: "请输入商品名称", trigger: "blur" },
   ],
+  "product_info.description": [
+    { required: true, message: "请输入描述", trigger: "blur" },
+  ],
+  "product_info.brand_id": [
+    { required: true, message: "请选择品牌", trigger: "blur" },
+  ],
+  "product_info.shop_id": [
+    { required: true, message: "请选择店铺", trigger: "blur" },
+  ],
   // 添加更多验证规则...
 });
 //图片上传引用
@@ -324,6 +344,11 @@ interface Warehouse {
   warehouse_id: string;
   warehouse_name: string;
 }
+//定义分类类型
+interface Category {
+  category_id: number;
+  category_name: string;
+}
 
 
 
@@ -332,7 +357,7 @@ interface Warehouse {
 const brandList = ref<Brand[]>([]);
 const shopList = ref<Shop[]>([]);
 const warehouseList = ref<Warehouse[]>([]);
-
+const categoryList = ref<Category[]>([]);
 
 /**tags */
 const inputValue = ref('')
@@ -512,7 +537,7 @@ function DetailsImageshandledelete(file: any, fileList: any[]) {
 }
 
 
-//请求品牌、分类、店铺
+//请求品牌、仓库、店铺
 const handleBrand = () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
   // console.log(user.id);
@@ -578,12 +603,25 @@ const handleBrand = () => {
       console.error(error);
     });
 }
-
+//请求分类id列表
+const handleCategory = () => {
+  axios.get(`/category`)
+   .then((response: AxiosResponse) => {
+      const Data: Category[] = response.data.data;
+      // console.log(Data);
+      categoryList.value = Data
+      // console.log(categoryList.value)
+    })
+   .catch((error: any) => {
+      console.error(error);
+   })
+}
 
 // 初始化表单数据
 onMounted(() => {
   // 可以在这里初始化表单数据
   handleBrand()
+  handleCategory()
 });
 </script>
 
