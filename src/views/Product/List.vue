@@ -197,8 +197,6 @@ const page = reactive({
 });
 const handlGetproductList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
-  // console.log(user);
-
   if (user.role == "Admin") {
     await axios
       .post("/products/getall", product, {
@@ -259,10 +257,4 @@ function handleSizeChange(val: number) {
 }
 </script>
 
-<<<<<<< HEAD
 <style lang="scss" scoped></style>
-=======
-<style scoped>
-
-</style>
->>>>>>> 0edffb08c966522b08d97d2eb0a2062b26da2340

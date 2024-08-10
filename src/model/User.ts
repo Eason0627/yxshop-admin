@@ -5,7 +5,7 @@ export default interface User {
   password: string;
   email: string; // 电子邮件，校验邮箱格式
   phone: string; // 手机号码，校验格式
-  role: Role; // 用户角色，默认为Customer，通常不需要校验
+  role: Role | string; // 用户角色，默认为Customer，通常不需要校验
   createTime: Date; // 创建时间，自动填充，不需要校验
   updateTime: Date; // 更新时间，自动更新，不需要校验
   status: Status; // 用户状态，默认为Active，通常不需要校验

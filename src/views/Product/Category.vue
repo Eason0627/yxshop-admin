@@ -102,13 +102,11 @@
             </template>
             <template v-if="item.type === 'operation'" #default="scope">
               <el-button
-                size="small"
                 type="primary"
                 @click="editRow(scope.$index, scope.row)"
                 >编辑</el-button
               >
               <el-button
-                size="small"
                 type="danger"
                 @click="deleteRow(scope.$index, scope.row)"
                 >删除</el-button
@@ -135,12 +133,12 @@
       </div>
     </div>
     <el-dialog v-model="dialogVisible" width="500" destroy-on-close>
-      <template #title>
+      <template #header>
         <div class="mb-4 text-xl font-bold">新增分类</div>
       </template>
       <div class="content flex justify-center items-center p-4">
         <el-form class="w-full" :model="category">
-          <el-form-item class="flex items-center" label="分类名称">
+          <el-form-item class="flex items-center" label="分类图片">
             <div
               class="image flex justify-center items-center w-36 h-36 rounded-md overflow-hidden"
               v-if="category.image_url"
@@ -162,6 +160,7 @@
                 :multiple="true"
                 :limit="1"
                 :before-upload="validateImage"
+                @change="uploadChange"
                 @onSuccess="success"
                 @onError="error"
               />
@@ -391,13 +390,15 @@ const clearCategory = () => {
 // 对话框取消按钮
 function dialogCancel() {
   dialogVisible.value = false;
-  if (dialogType.value == "add") {
-    clearCategory();
-  }
+  clearCategory();
 }
 
 // 对话框确认按钮
 function dialogConfirm() {
+  // 数据校验
+  if (!category.value.category_name || !category.value.description) {
+    return ElMessage.error("数据缺失！");
+  }
   if (dialogType.value == "add") {
     // 新增分类
     productCategory.value.push(category.value);
@@ -438,6 +439,9 @@ function success(response: any, file: any, fileList: any[]) {
 function error(error: any, file: any, fileList: any[]) {
   console.error("上传失败", error, file, fileList);
   // 处理上传失败后的逻辑
+}
+function uploadChange(file: any, fileList: any[]) {
+  console.log("上传图片", file, fileList);
 }
 
 // 选择数据行

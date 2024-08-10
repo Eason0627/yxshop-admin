@@ -16,7 +16,7 @@
               item.fullPath == router.currentRoute.value.fullPath ? 1 : 0,
           }"
           v-if="index !== 0"
-          @click="closeHistory(item)"
+          @click.stop="closeHistory(item)"
         >
           <el-icon><Close /></el-icon>
         </span>
@@ -58,6 +58,8 @@ const closeHistory = (_router: RouteLocationNormalized) => {
   if (_router.fullPath == router.currentRoute.value.fullPath) {
     router.go(-1);
   }
+  // 移除路由历史记录
+
   routeHistory.removeHistory(_router);
 };
 
@@ -114,6 +116,7 @@ onMounted(() => {
         padding-right: 5px;
         transition: all 0.3s;
         opacity: 0;
+        z-index: 10;
       }
       &:hover {
         color: var(--theme-color);

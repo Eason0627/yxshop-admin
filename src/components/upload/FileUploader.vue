@@ -1,14 +1,25 @@
 <template>
-  <el-upload 
+  <el-upload
     ref="uploadRef"
-    :action="uploadAction" :multiple="multiple" :headers="headers" :limit="limit" :file-list="fileList"
-    :auto-upload="auto" :on-change="handleChange" :on-remove="handleRemove" :before-upload="beforeUpload"
-    :on-exceed="handleExceed" :on-success="handleSuccess" :on-error="handleError" list-type="picture-card"
-    :class="{ 'is-disabled': disabled }">
+    :action="uploadAction"
+    :multiple="multiple"
+    :headers="headers"
+    :limit="limit"
+    :file-list="fileList"
+    :auto-upload="auto"
+    :on-change="handleChange"
+    :on-remove="handleRemove"
+    :before-upload="beforeUpload"
+    :on-exceed="handleExceed"
+    :on-success="handleSuccess"
+    :on-error="handleError"
+    list-type="picture-card"
+    :class="{ 'is-disabled': disabled }"
+  >
     <el-icon>
       <UploadFilled />
     </el-icon>
-    <span @click= "submitUpload"></span>
+    <span @click="submitUpload"></span>
   </el-upload>
 </template>
 
@@ -16,6 +27,7 @@
 import { ref, watchEffect } from "vue";
 import { ElMessage } from "element-plus";
 
+// 传参数据类型
 interface Props {
   disabled?: boolean;
   action?: string;
@@ -27,6 +39,7 @@ interface Props {
   onError?: (error: any, file: any, fileList: any[]) => void;
 }
 
+// 自定义事件
 interface Emits {
   (e: "change", file: any, fileList: any[]): void;
   (e: "update:modelValue", file: any, fileList: any[]): void;
@@ -34,6 +47,7 @@ interface Emits {
   (e: "onError", error: any, file: any, fileList: any[]): void;
 }
 
+// 参数默认值
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   action: "",
@@ -41,31 +55,35 @@ const props = withDefaults(defineProps<Props>(), {
   limit: 5,
   auto: false,
   beforeUpload: () => true,
-  onSuccess: () => { },
-  onError: () => { },
+  onSuccess: () => {},
+  onError: () => {},
 });
 
 const emit = defineEmits<Emits>();
 
+// 接收文件列表
 const fileList = ref<any[]>([]);
-const uploadAction = ref(props.action);
-const uploadRef = ref(null);
+// 文件上传地址
+const uploadAction = ref<string>(props.action);
+// Upload Dom对象
+const uploadRef = ref<any>(null);
 
+// 携带请求头
 const headers = ref({
   Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
 });
+
 // 监听 action 变化
 watchEffect(() => {
   uploadAction.value = props.action;
 });
 
 // 提交上传
-const submitUpload =  () => {
+const submitUpload = () => {
   if (uploadRef.value) {
-     uploadRef.value.submit();
+    uploadRef.value.submit();
   }
 };
-
 
 defineExpose({
   submitUpload,
@@ -81,7 +99,8 @@ function handleRemove(file: any, fileList: any) {
 
 function handleExceed(files: any, fileList: any) {
   ElMessage.warning(
-    `当前限制选择 ${props.limit} 个文件，本次选择了 ${files.length
+    `当前限制选择 ${props.limit} 个文件，本次选择了 ${
+      files.length
     } 个文件，共选择了 ${files.length + fileList.length} 个文件`
   );
 }
@@ -104,9 +123,15 @@ function handleError(error: any, file: any, fileList: any[]) {
 }
 </script>
 
-<style scoped>
+<style>
 .is-disabled {
   pointer-events: none;
   opacity: 0.6;
+}
+
+.el-upload--picture-card {
+  width: 96px !important;
+  height: 96px !important;
+  line-height: 96px !important;
 }
 </style>
