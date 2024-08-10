@@ -64,7 +64,8 @@
           <!-- 添加操作列 -->
           <el-table-column label="操作" width="220">
             <template #default="scope">
-              <el-button size="small" type="primary" @click="editRow(scope.$index, scope.row)">编辑</el-button>
+              <el-button size="small" type="primary" @click="toggleDialog(scope.$index, scope.row)">编辑</el-button>
+              <!-- <el-button size="small" type="primary" @click="editRow(scope.$index, scope.row)">编辑</el-button> -->
               <el-button size="small" type="danger" @click="changedaialog(scope.$index, scope.row)">删除</el-button>
               <!-- <el-button size="small" type="danger" @click="deleteRow(scope.$index, scope.row)">删除</el-button> -->
             </template>
@@ -95,6 +96,9 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 修改弹窗 -->
+    <UpdateDialog v-model:dialogFormVisible="dialogVisible" v-model:rowdata="rowdata"></UpdateDialog>
   </div>
 </template>
 
@@ -107,9 +111,13 @@ import { ElMessage,ElMessageBox } from "element-plus";
 // import { formatDate } from "@/utils/formatDate";
 import User from "@/model/User";
 import Product from "@/model/Product";
+import UpdateDialog from "./UpdateDialog.vue";
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
+
+// 修改弹出窗口控制
+const dialogVisible = ref(false)
 
 //删除弹窗控制
 const deletedialogVisible = ref(false)
@@ -120,7 +128,17 @@ const changedaialog = (index: any, row: any) =>{
   indexdata.value = index
   rowdata.value = row
 }
-
+//修改弹窗以及获取商品信息
+function toggleDialog(index: any, row: any) {
+  dialogVisible.value = !dialogVisible.value;
+  indexdata.value = index
+  rowdata.value = row
+  axios.get(`/products/${rowdata.value.product_id}`).then((response:AxiosResponse) => {
+    // console.log(response.data.data)
+    rowdata.value = response.data.data
+    // console.log(rowdata.value )
+  })
+}
 const searchText = ref("");
 const searchType = ref("");
 
@@ -241,7 +259,7 @@ const handlGetproductList = async () => {
 const editRow = (index: any, row: any) => {
   console.log("编辑行:", index, row);
 };
-
+//删除单个商品数据
 const deleteRow = (index: any, row: any) => {
   console.log("删除行:", index, row);
   // 在实际应用中，你可能需要从 data 数组中移除该行
@@ -262,7 +280,16 @@ const deleteRow = (index: any, row: any) => {
     deletedialogVisible.value = false;
   })
 };
-
+//批量删除商品数据
+const deleteRows = () => {
+  // 在实际应用中，你可能需要从 data 数组中移除这些行
+  multipleSelection.value.forEach((item: Product) => {
+    const index = tableData.value.indexOf(item);
+    if (index > -1) {
+      tableData.value.splice(index, 1);
+    }
+  });
+}
 
 //请求分类id列表
 const handleCategory = () => {
