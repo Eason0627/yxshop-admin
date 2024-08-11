@@ -426,9 +426,9 @@ const submitForm = () => {
           .then((response: AxiosResponse) => {
            console.log(response.data);
            ElMessage({
-            message: response.data.data,
-            type: 'success',
-          })
+              message: response.data.data,
+              type: 'success',
+            })
           })
       }
     })

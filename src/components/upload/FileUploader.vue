@@ -34,6 +34,7 @@ interface Props {
   multiple?: boolean;
   limit?: number;
   auto?: boolean;
+  // fileList?: any[];
   beforeUpload?: (file: any) => boolean;
   onSuccess?: (response: any, file: any, fileList: any[]) => void;
   onError?: (error: any, file: any, fileList: any[]) => void;
@@ -54,6 +55,7 @@ const props = withDefaults(defineProps<Props>(), {
   multiple: false,
   limit: 5,
   auto: false,
+  // fileList: any[],
   beforeUpload: () => true,
   onSuccess: () => {},
   onError: () => {},

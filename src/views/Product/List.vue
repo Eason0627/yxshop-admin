@@ -44,7 +44,7 @@
             <el-button type="primary" class="ml-2"
               >搜索</el-button
             >
-            <el-button type="danger" plain>Clear</el-button>
+            <el-button type="danger" plain @click="resetSearch">清除</el-button>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@
           />
 
           <!-- 添加操作列 -->
-          <el-table-column label="操作" width="220">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="scope">
               <el-button
                 size="small"
@@ -174,7 +174,8 @@
     <!-- 修改弹窗 -->
     <UpdateDialog
       v-model:dialogFormVisible="dialogVisible"
-      v-model:rowdata="rowdata"
+      v-model:form="form"
+      v-model:categoryList="categoryList"
     ></UpdateDialog>
   </div>
 </template>
@@ -204,17 +205,94 @@ const changedaialog = (index: any, row: any) => {
   indexdata.value = index;
   rowdata.value = row;
 };
+
+//定义修改表单对象
+let form = reactive({
+  product_info: {
+    product_id:"",
+    product_name: "",
+    description: "这款星辰X5 Pro 智能手机是一款旗舰级设备，旨在",
+    brand_id: 2,
+    shop_id: 1813922145265389568,
+    origin: "中国",
+    material: "556",
+    size: "6.7",
+    color: "黑色",
+    weight: 255,
+    packaging_details: "三无产品",
+    warranty_info: "5年质保",
+    production_date: "2024-08-14",
+    expiration_date: "2024-08-16",
+    category_id: 0,
+    main_image: "",
+    additional_images: [],
+    details_images: [],
+    tags: ["手机", "数码"],
+  },
+  product_sales: {
+    price: 699,//售价
+    cost_price: 52,//成本价
+    stock_quantity: 4500,//库存
+    reorder_threshold: 0,//在订购点
+    promotion_details: "满500减100元",
+    shipping_fee: 10,
+    sales_status:""
+  },
+  inventory: {
+    warehouse_id: 1816111338636840960,
+    stock_quantity: 45000,
+    safety_stock: 5000,
+    last_restock_date: "",//上次捕获日期
+    restock_threshold: 400,//捕获缺乏值
+  },
+});
 //修改弹窗以及获取商品信息
-function toggleDialog(index: any, row: any) {
+function editRow(index: any, row: any) {
   dialogVisible.value = !dialogVisible.value;
   indexdata.value = index;
   rowdata.value = row;
   axios
     .get(`/products/${rowdata.value.product_id}`)
     .then((response: AxiosResponse) => {
-      // console.log(response.data.data)
-      rowdata.value = response.data.data;
-      // console.log(rowdata.value )
+      console.log(typeof response.data.data.product_id)
+      const Data = response.data.data;
+      // console.log(Data)
+      form.product_info.product_id = Data.product_id
+      form.product_info.product_name = Data.product_name;
+      form.product_info.description = Data.description;
+      form.product_info.brand_id = Data.brand_id;
+      form.product_info.shop_id = Data.shop_id;
+      form.product_info.origin = Data.origin;
+      form.product_info.material = Data.material;
+      form.product_info.size = Data.size;
+      form.product_info.color = Data.color;
+      form.product_info.weight = Data.weight;
+      form.product_info.packaging_details = Data.packaging_details;
+      form.product_info.warranty_info = Data.warranty_info;
+      form.product_info.production_date = Data.production_date;
+      form.product_info.expiration_date = Data.expiration_date;
+      form.product_info.category_id = Data.category_id;
+      form.product_info.main_image = Data.main_image;
+      form.product_info.additional_images = JSON.parse(Data.additional_images || "");
+      form.product_info.details_images = JSON.parse(Data.details_images || "");
+      form.product_info.tags = Data.tags;
+
+      form.product_sales.price = Data.price;
+      form.product_sales.cost_price = Data.cost_price;
+      form.product_sales.stock_quantity = Data.stock_quantity;
+      form.product_sales.reorder_threshold = Data.reorder_threshold;
+      form.product_sales.promotion_details = Data.promotion_details;
+      form.product_sales.shipping_fee = Data.shipping_fee;
+      form.product_sales.sales_status = Data.sales_status;
+
+      form.inventory.warehouse_id = Data.warehouse_id;
+      // form.inventory.stock_quantity = Data.stock_quantity;
+      form.inventory.safety_stock = Data.safety_stock;
+      form.inventory.last_restock_date = Data.last_restock_date;
+      form.inventory.restock_threshold = Data.restock_threshold;
+      
+      // console.log(form)
+
     });
 }
 const searchText = ref("");
@@ -328,18 +406,15 @@ const handlGetproductList = async () => {
   }
 };
 
-// 模拟的事件处理函数
-const editRow = (index: any, row: any) => {
-  console.log("编辑行:", index, row);
-};
+
 //删除单个商品数据
 const deleteRow = (index: any, row: any) => {
   console.log("删除行:", index, row);
   // 在实际应用中，你可能需要从 data 数组中移除该行
   tableData.value.splice(indexdata, 1);
-  // console.log(rowdata.value.product_id);
+  // console.log(row.product_id);
   axios
-    .delete(`/products/${rowdata.value.product_id}`)
+    .delete(`/products/${row.product_id}`)
     .then((res: AxiosResponse) => {
       console.log(res.data);
       ElMessage({
@@ -357,15 +432,15 @@ const deleteRow = (index: any, row: any) => {
     });
 };
 //批量删除商品数据
-const deleteRows = () => {
-  // 在实际应用中，你可能需要从 data 数组中移除这些行
-  multipleSelection.value.forEach((item: Product) => {
-    const index = tableData.value.indexOf(item);
-    if (index > -1) {
-      tableData.value.splice(index, 1);
-    }
-  });
-};
+// const deleteRows = () => {
+//   // 在实际应用中，你可能需要从 data 数组中移除这些行
+//   multipleSelection.value.forEach((item: Product) => {
+//     const index = tableData.value.indexOf(item);
+//     if (index > -1) {
+//       tableData.value.splice(index, 1);
+//     }
+//   });
+// };
 
 //请求分类id列表
 const handleCategory = () => {
