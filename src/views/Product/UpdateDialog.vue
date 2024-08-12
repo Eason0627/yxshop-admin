@@ -171,7 +171,13 @@
       </el-form-item>
 
       <el-form-item label="上次补货日期：" :label-width="formLabelWidth">
-        <el-input v-model="form.inventory.last_restock_date" autocomplete="off" disabled />
+        <!-- <el-input v-model="form.inventory.last_restock_date" autocomplete="off" disabled /> -->
+        <el-date-picker
+          v-model="form.inventory.last_restock_date"
+          type="date"
+          placeholder="Pick a day"
+          
+        />
       </el-form-item>
 
       <el-form-item label=" 补货阈值：" :label-width="formLabelWidth">
@@ -321,20 +327,32 @@ const salesStatus = ref([
 
 // 关闭对话框的方法
 function closeDialog() {
-console.log(props.form)
   emit('update:dialogFormVisible', false);
 }
 //提交修改
 async function submitChanges (){
   // 发送请求发布商品
-  console.log( JSON.stringify(props.form))
+  // console.log( JSON.stringify(props.form))
+  // delete props.form.inventory.last_restock_date
+  console.log(props.form.inventory.last_restock_date)
+
+    function formatDate(date: Date) {
+      var year = date.getFullYear();
+      var month = ('0' + (date.getMonth() + 1)).slice(-2); // 添加前导零
+      var day = ('0' + date.getDate()).slice(-2); // 添加前导零
+      return year + '-' + month + '-' + day ;
+  }
+  props.form.inventory.last_restock_date = formatDate( new Date(props.form.inventory.last_restock_date) )
+  console.log(props.form.inventory.last_restock_date)
+
   await axios.put(`/products/${props.form.product_info.product_id}`, props.form)
   .then((response) => {
       console.log(response.data);
       ElMessage({
-          message: response.data.data,
+          message: "修改成功",
           type: 'success',
       });
+      closeDialog()
   })
   .catch((error) => {
       console.error(error);
