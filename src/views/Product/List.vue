@@ -41,9 +41,7 @@
             />
           </div>
           <div class="option">
-            <el-button type="primary" class="ml-2"
-              >搜索</el-button
-            >
+            <el-button type="primary" class="ml-2">搜索</el-button>
             <el-button type="danger" plain>Clear</el-button>
           </div>
         </div>

@@ -159,7 +159,7 @@ const routes = [
       {
         path: "/shop/list",
         name: "店铺列表",
-        component: () => import("@/views/Shop/List.vue"),
+        component: () => import("@/views/Shop/List/List.vue"),
       },
       {
         path: "/shop/info",
