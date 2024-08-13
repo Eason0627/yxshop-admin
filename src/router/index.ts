@@ -159,7 +159,7 @@ const routes = [
       {
         path: "/shop/list",
         name: "店铺列表",
-        component: () => import("@/views/Shop/List.vue"),
+        component: () => import("@/views/Shop/List/List.vue"),
       },
       {
         path: "/shop/info",
@@ -170,6 +170,36 @@ const routes = [
         path: "/shop/custom",
         name: "店铺装修",
         component: () => import("@/views/Shop/Custom.vue"),
+      },
+    ],
+  },
+  {
+    path: "/brand",
+    component: () => import("@/views/Home.vue"),
+    children: [
+      {
+        path: "/brand",
+        redirect: "/brand/list",
+      },
+      {
+        path: "/brand/list",
+        name: "品牌列表",
+        component: () => import("@/views/Brand/List.vue"),
+      },
+    ],
+  },
+  {
+    path: "/process",
+    component: () => import("@/views/Home.vue"),
+    children: [
+      {
+        path: "/process",
+        redirect: "/process/list",
+      },
+      {
+        path: "/process/list",
+        name: "审核列表",
+        component: () => import("@/views/Process/List.vue"),
       },
     ],
   },

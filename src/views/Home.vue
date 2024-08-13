@@ -192,6 +192,34 @@ const navigation: NavigationItem[] = [
     ],
   },
   {
+    url: "/brand",
+    name: "品牌管理",
+    left_icon: "&#xe612;",
+    right_icon: "&#xe632;",
+    children: [
+      {
+        url: "/brand/list",
+        name: "品牌列表",
+        right_icon: "&#xe612;",
+        children: [],
+      },
+    ],
+  },
+  {
+    url: "/process",
+    name: "审核管理",
+    left_icon: "&#xe7e2;",
+    right_icon: "&#xe632;",
+    children: [
+      {
+        url: "/process/list",
+        name: "审核列表",
+        right_icon: "&#xe612;",
+        children: [],
+      },
+    ],
+  },
+  {
     url: "/warehouse",
     name: "仓储管理",
     left_icon: "&#xe706;",
