@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "5199423",
+      "name": "上箭头",
+      "font_class": "shangjiantou",
+      "unicode": "e60d",
+      "unicode_decimal": 58893
+    },
+    {
+      "icon_id": "2121739",
+      "name": "品牌",
+      "font_class": "pinpai",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "9143175",
+      "name": "审核",
+      "font_class": "shenhe",
+      "unicode": "e7e2",
+      "unicode_decimal": 59362
+    },
+    {
       "icon_id": "268502",
       "name": "身份证证件",
       "font_class": "shenfengzheng",

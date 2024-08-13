@@ -174,6 +174,36 @@ const routes = [
     ],
   },
   {
+    path: "/brand",
+    component: () => import("@/views/Home.vue"),
+    children: [
+      {
+        path: "/brand",
+        redirect: "/brand/list",
+      },
+      {
+        path: "/brand/list",
+        name: "品牌列表",
+        component: () => import("@/views/Brand/List.vue"),
+      },
+    ],
+  },
+  {
+    path: "/process",
+    component: () => import("@/views/Home.vue"),
+    children: [
+      {
+        path: "/process",
+        redirect: "/process/list",
+      },
+      {
+        path: "/process/list",
+        name: "审核列表",
+        component: () => import("@/views/Process/List.vue"),
+      },
+    ],
+  },
+  {
     path: "/warehouse",
     component: () => import("@/views/Home.vue"),
     children: [
