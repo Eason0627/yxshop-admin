@@ -66,15 +66,17 @@
             @mouseleave="menuShow = false"
             v-show="menuShow"
           >
-            <div
-              class="document flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
-            >
+            <div class="document flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10">
               <el-icon><Switch /></el-icon>
               <span class="ml-2">切换店铺</span>
             </div>
-            <div
-              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
-            ></div>
+            <div class=" w-full my-1 p-[10px] bg-white border-t-[2px] ">
+              <div class="my-2" 
+              v-for="(item) in shopList"
+              @click="selectShop(item.shop_id, item.shop_name)"
+              >{{item.shop_name}}</div>
+            </div>
+            <div class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"></div>
             <div
               class="lock flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
             >
@@ -106,6 +108,8 @@ import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
+import { userShopStore } from "@/store/index";
+import { ElNotification } from 'element-plus'
 
 // 注入默认头像
 const defaultAvatar = inject("defaultAvatar");
@@ -157,10 +161,39 @@ const getRouteInfo = () => {
   }
 };
 
+const ShopStore = userShopStore();
+//店铺id
+const shopList = ref([]);
+const getShops = async () => {
+  await axios.get(`/shops/getShopByUserId/${user.id}`).then((res) => {
+    // 存储到 pinia
+    ShopStore.setShopList(res.data.data);
+    shopList.value = res.data.data.map((item:any) => ({
+      shop_id:item.shop_id,
+      shop_name:item.shop_name
+    }))
+    ShopStore.setCurrentShop({id:shopList.value[0].shop_id, name:shopList.value[0].shop_name})
+    // console.log(ShopStore.getCurrentShop);
+    // console.log(ShopStore.getShopList)
+   
+  });
+};
+const selectShop = (id:any,name:any) =>{
+  // console.log(id,name)
+  ShopStore.setCurrentShop({id:id,name:name})
+  console.log(ShopStore.getCurrentShop);
+  ElNotification({
+    title: '切换店铺成功',
+    message: '切换为'+name+'店铺',
+    type: 'success',
+  })
+}
+
 const getUserInfo = async () => {
   await axios.get("/users/" + user.id).then((res) => {
     if (res.data.code === 200) {
       user = res.data.data;
+      // console.log(user)
     } else {
       PopUp.getInstance(Type.error, res.data.msg).show();
       toLogin();
@@ -202,6 +235,7 @@ onBeforeMount(() => {
 
 onMounted(async () => {
   await getUserInfo();
+  getShops()
 });
 </script>
 <style lang="scss" scoped>

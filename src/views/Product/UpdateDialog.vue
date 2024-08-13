@@ -22,9 +22,9 @@
         <el-select v-model="form.product_info.category_id" placeholder="请选择分类">
           <el-option
             v-for="item in props.categoryList"
-            :key="item.category_id"
-            :label="item.category_name"
-            :value="item.category_id"
+            :key="item.id"
+            :label="item.label"
+            :value="item.id"
           />
         </el-select>
       </el-form-item>
@@ -64,10 +64,6 @@
       <el-form-item label="保质期：" :label-width="formLabelWidth">
         <el-input v-model="form.product_info.expiration_date" autocomplete="off" />
       </el-form-item>
-
-      <!-- <el-form-item label="保质期：" :label-width="formLabelWidth">
-        <el-input v-model="form.product_info.main_image" autocomplete="off" />
-      </el-form-item> -->
 
       <el-form-item label="商品首图：" prop="" :label-width="formLabelWidth" calss="border"  enctype="multipart/form-data">
         <el-button type="danger" @click="props.form.product_info.main_image=''">删除图片</el-button>
@@ -198,7 +194,7 @@
 
 <script setup lang="ts">
 import { ElInput, ElMessage } from 'element-plus';
-import { reactive, ref,inject, defineProps, defineEmits, nextTick } from 'vue'
+import {  ref,inject, defineProps, defineEmits, nextTick } from 'vue'
 import  FileUploader  from '@/components/upload/FileUploader.vue'
 import { Axios, AxiosResponse } from "axios";
 
@@ -328,6 +324,7 @@ const salesStatus = ref([
 // 关闭对话框的方法
 function closeDialog() {
   emit('update:dialogFormVisible', false);
+  console.log(props.categoryList)
 }
 //提交修改
 async function submitChanges (){
@@ -346,7 +343,7 @@ async function submitChanges (){
   console.log(props.form.inventory.last_restock_date)
 
   await axios.put(`/products/${props.form.product_info.product_id}`, props.form)
-  .then((response) => {
+  .then((response:AxiosResponse) => {
       console.log(response.data);
       ElMessage({
           message: "修改成功",

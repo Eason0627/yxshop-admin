@@ -286,7 +286,7 @@ const form: FormModel = reactive({
     warehouse_id: 1816111338636840960,
     stock_quantity: 45000,
     safety_stock: 5000,
-    last_restock_date: "",
+    // last_restock_date: "2024-02-25",
     restock_threshold: 400,
   },
 });
@@ -428,6 +428,12 @@ const submitForm = () => {
            ElMessage({
               message: response.data.data,
               type: 'success',
+            })
+          })
+          .catch(()=>{
+            ElMessage({
+              message: "添加失败",
+              type: 'warning',
             })
           })
       }

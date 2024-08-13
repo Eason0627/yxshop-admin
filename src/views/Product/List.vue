@@ -121,11 +121,17 @@
           </el-table-column>
 
           <el-table-column
-            property="category_id"
             label="分类"
             width="120"
             sortable
-          />
+          >
+          <template #default="{ row }">
+            {{ getCategoryName(row.category_id) }}
+          </template>
+        </el-table-column>
+
+
+
           <el-table-column
             property="product_status"
             label="上/下架"
@@ -197,16 +203,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, Ref, markRaw } from "vue";
+import { ref, reactive, inject, onMounted, Ref, markRaw, computed } from "vue";
 import { Axios, AxiosResponse } from "axios";
 
 import UpdateDialog from "./UpdateDialog.vue";
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
-// import { formatDate } from "@/utils/formatDate";
-// import User from "@/model/User";
+import  {userShopStore}  from "@/store/index";
 import Product from "@/model/Product";
-import ProductCategory from "@/model/ProductCategory";
+
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
@@ -355,12 +360,10 @@ interface Category {
 
 // 示例数据
 let tableData: Ref<Product[]> = ref([] as Product[]);
-const categoryList = ref<Category[]>([]);
-// 映射对象
-const categoryMapping: Record<string, string> = {};
-categoryList.value.forEach((category) => {
-  categoryMapping[category.category_id] = category.category_name;
-});
+const categoryList:Ref<{
+[x: string]: any; [key: number]: any 
+}> = ref({});
+
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>();
 const selectData = ref<any>([]);
@@ -389,17 +392,24 @@ function resetSearch() {
   // startTime.value = "";
   // endTime.value = "";
 }
+
+// 获取当前店铺��数据
+const ShopInfo = userShopStore();
+// const currentShop = ShopInfo.currentShop;
+// const shopList = ShopInfo.shopList;
+// console.log(currentShop)
+
 //获取表格数据
 const handlGetproductList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
   // console.log(user);
-  // console.log(searchType.value,searchText.value)
-
-  Object.keys(product).forEach((key) => delete product[key]); //清空对象
-  product[searchType.value] = searchText.value; //赋值对象
-  // console.log(product);
-
   if (user.role == "Admin") {
+    // console.log("admin");
+    
+    Object.keys(product).forEach((key) => delete product[key]); //清空对象
+    if(searchType.value!="" && searchText.value!=""){
+        product[searchType.value] = searchText.value; //赋值对象
+      }
     await axios
       .post("/products/getall", product, {
         params: {
@@ -408,6 +418,14 @@ const handlGetproductList = async () => {
         },
       })
       .then((res: AxiosResponse) => {
+        if(res.data.data.total==0){
+          ElMessage({
+            message: '您没有该店��的相关商品',
+            type: 'warning',
+            center: true,
+          });
+          return;
+        }
         page.total = res.data.data.total;
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
@@ -419,13 +437,62 @@ const handlGetproductList = async () => {
       });
   }
   if (user.role == "ShopOwner") {
+    // console.log("ShopOwner");
+    Object.keys(product).forEach((key) => delete product[key]); //清空对象
+
+    if(searchType.value!="" && searchText.value!=""){
+      product[searchType.value] = searchText.value; //赋值对象
+    }
+    if(!ShopInfo.getCurrentShop.id){
+      ElMessage({
+            message: '亲，没有绑定店铺，无法查询',
+            type: 'warning',
+            center: true,
+          });
+      return
+    }
+    product["shop_id"] = ShopInfo.getCurrentShop.id; //赋值对象
+      await axios
+      .post("/products/getall", JSON.stringify(product), {
+        params: {
+          pageNum: page.pageNum,
+          pageSize: page.pageSize,
+        },
+      })
+      .then((res: AxiosResponse) => {
+        if(res.data.data.total==0){
+          ElMessage({
+            message: '您没有该店��的相关商品，请您切换店铺',
+            type: 'warning',
+            center: true,
+          });
+          return;
+        }
+        page.total = res.data.data.total;
+        tableData.value = res.data.data.list;
+        tableData.value.forEach((item: Product) => {
+          item.tags = JSON.parse(item.tags || "");
+          item.updateTime = item.updateTime.join("-");
+          item.product_status = item.product_status?"已上架":"已下架"
+        });
+        // console.log(tableData.value);
+      });
+    
   }
 };
 
-// 计算属性
+// 上下架计算属性
 function buttonType(row:any) {
   return row.product_status === '已上架' ? 'success' : 'info';
 }
+
+// 方法
+function getCategoryName(id: any) {
+  const category = categoryList.value.find((c: { id: string; }) => c.id === String(id));
+  return category ? category.label : '未知';
+}
+
+
 
 //修改商品上下架
 const setProductOnline = (index:any,row:any) => {
@@ -515,8 +582,12 @@ const handleCategory = () => {
     .get(`/category`)
     .then((response: AxiosResponse) => {
       const Data: Category[] = response.data.data;
+      // categoryList.value = Data;
       // console.log(Data);
-      categoryList.value = Data;
+      categoryList.value = Data.map((item:any) => ({
+        id: item.category_id,
+        label: item.category_name,
+      }));
       // console.log(categoryList.value)
     })
     .catch((error: any) => {
