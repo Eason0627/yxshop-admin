@@ -3,9 +3,9 @@
     <div
       class="content flex flex-col w-full h-full border-[1px] border-[--info-border-color] rounded-md overflow-y-auto bg-white"
     >
-      <div class="tools p-4 mb-4">
-        <p class="text-left">搜索商品：</p>
+      <div class="tools p-4 mb-4 flex justify-between">
         <div class="search mt-2 flex flex-nowrap justify-start items-center">
+        <p class="text-left">搜索商品：</p>
           <div class="option">
             <el-input
               v-model="searchText"
@@ -41,10 +41,28 @@
             />
           </div>
           <div class="option">
-            <el-button type="primary" class="ml-2">搜索</el-button>
-            <el-button type="danger" plain>Clear</el-button>
+            <el-button type="primary" class="ml-2"
+              >搜索</el-button
+            >
+            <el-button type="danger" plain @click="resetSearch">清除</el-button>
           </div>
         </div>
+
+        <div class="action flex items-center ">
+          <div
+            class="tip mr-2 self-end text-sm text-[--error-color] underline cursor-pointer"
+          >
+            已选<span>{{ selectData.length }}</span
+            >条数据
+          </div>
+          <div class="del">
+            <el-button type="danger" plain class="mr-2" @click="delData"
+              >删除所选</el-button
+            >
+          </div>
+        
+        </div>
+
       </div>
       <div class="tableBox flex-1">
         <el-table
@@ -113,7 +131,16 @@
             label="上/下架"
             width="120"
             sortable
-          />
+          >
+            <template #default="scope">
+              <el-button
+                size="small"
+                :type="buttonType(scope.row)"
+                @click="setProductOnline(scope.$index, scope.row)"
+                >{{ scope.row.product_status }}</el-button
+              >
+            </template>
+          </el-table-column>
 
           <el-table-column
             show-overflow-tooltip
@@ -122,7 +149,7 @@
           />
 
           <!-- 添加操作列 -->
-          <el-table-column label="操作" width="220">
+          <el-table-column label="操作" width="220" fixed="right">
             <template #default="scope">
               <el-button
                 size="small"
@@ -158,34 +185,28 @@
       </div>
     </div>
 
-    <!-- 删除弹窗 -->
-    <el-dialog v-model="deletedialogVisible" title="删除数据" width="500">
-      <span>确定删除这一条数据吗？</span>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button @click="deletedialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="deleteRow()"> 确定 </el-button>
-        </div>
-      </template>
-    </el-dialog>
+    
 
     <!-- 修改弹窗 -->
     <UpdateDialog
       v-model:dialogFormVisible="dialogVisible"
-      v-model:rowdata="rowdata"
+      v-model:form="form"
+      v-model:categoryList="categoryList"
     ></UpdateDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, Ref } from "vue";
+import { ref, reactive, inject, onMounted, Ref, markRaw } from "vue";
 import { Axios, AxiosResponse } from "axios";
 
 import UpdateDialog from "./UpdateDialog.vue";
-import { ElMessage, ElTable } from "element-plus";
+import { ElMessage, ElMessageBox, ElTable } from "element-plus";
+import { Delete } from "@element-plus/icons-vue";
 // import { formatDate } from "@/utils/formatDate";
-import User from "@/model/User";
+// import User from "@/model/User";
 import Product from "@/model/Product";
+import ProductCategory from "@/model/ProductCategory";
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
@@ -197,22 +218,96 @@ const dialogVisible = ref(false);
 const deletedialogVisible = ref(false);
 const indexdata: any = ref("");
 const rowdata: any = ref("");
-const changedaialog = (index: any, row: any) => {
-  deletedialogVisible.value = true;
-  indexdata.value = index;
-  rowdata.value = row;
-};
+
+
+
+//定义修改表单对象
+let form = reactive({
+  product_info: {
+    product_id:"",
+    product_name: "",
+    description: "这款星辰X5 Pro 智能手机是一款旗舰级设备，旨在",
+    brand_id: 2,
+    shop_id: 1813922145265389568,
+    origin: "中国",
+    material: "556",
+    size: "6.7",
+    color: "黑色",
+    weight: 255,
+    packaging_details: "三无产品",
+    warranty_info: "5年质保",
+    production_date: "2024-08-14",
+    expiration_date: "2024-08-16",
+    category_id: 0,
+    main_image: "",
+    additional_images: [],
+    details_images: [],
+    tags: ["手机", "数码"],
+  },
+  product_sales: {
+    price: 699,//售价
+    cost_price: 52,//成本价
+    stock_quantity: 4500,//库存
+    reorder_threshold: 0,//在订购点
+    promotion_details: "满500减100元",
+    shipping_fee: 10,
+    sales_status:"",
+  },
+  inventory: {
+    warehouse_id: 1816111338636840960,
+    stock_quantity: 45000,
+    safety_stock: 5000,
+    last_restock_date: "",//上次捕获日期
+    restock_threshold: 400,//捕获缺乏值
+  }
+});
 //修改弹窗以及获取商品信息
-function toggleDialog(index: any, row: any) {
+function editRow(index: any, row: any) {
   dialogVisible.value = !dialogVisible.value;
   indexdata.value = index;
   rowdata.value = row;
   axios
     .get(`/products/${rowdata.value.product_id}`)
     .then((response: AxiosResponse) => {
-      // console.log(response.data.data)
-      rowdata.value = response.data.data;
-      // console.log(rowdata.value )
+      // console.log(typeof response.data.data.product_id)
+      const Data = response.data.data;
+      // console.log(Data)
+      form.product_info.product_id = Data.product_id
+      form.product_info.product_name = Data.product_name;
+      form.product_info.description = Data.description;
+      form.product_info.brand_id = Data.brand_id;
+      form.product_info.shop_id = Data.shop_id;
+      form.product_info.origin = Data.origin;
+      form.product_info.material = Data.material;
+      form.product_info.size = Data.size;
+      form.product_info.color = Data.color;
+      form.product_info.weight = Data.weight;
+      form.product_info.packaging_details = Data.packaging_details;
+      form.product_info.warranty_info = Data.warranty_info;
+      form.product_info.production_date = Data.production_date;
+      form.product_info.expiration_date = Data.expiration_date;
+      form.product_info.category_id = Data.category_id;
+      form.product_info.main_image = Data.main_image;
+      form.product_info.additional_images = JSON.parse(Data.additional_images || "");
+      form.product_info.details_images = JSON.parse(Data.details_images || "");
+      form.product_info.tags = Data.tags;
+
+      form.product_sales.price = Data.price;
+      form.product_sales.cost_price = Data.cost_price;
+      form.product_sales.stock_quantity = Data.stock_quantity;
+      form.product_sales.reorder_threshold = Data.reorder_threshold;
+      form.product_sales.promotion_details = Data.promotion_details;
+      form.product_sales.shipping_fee = Data.shipping_fee;
+      form.product_sales.sales_status = Data.sales_status;
+
+      form.inventory.warehouse_id = Data.warehouse_id;
+      // form.inventory.stock_quantity = Data.stock_quantity;
+      form.inventory.safety_stock = Data.safety_stock;
+      form.inventory.last_restock_date = Data.last_restock_date;
+      form.inventory.restock_threshold = Data.restock_threshold;
+      
+      // console.log(form)
+
     });
 }
 const searchText = ref("");
@@ -268,10 +363,10 @@ categoryList.value.forEach((category) => {
 });
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>();
-const multipleSelection = ref<User[]>([]);
+const selectData = ref<any>([]);
 
-const handleSelectionChange = (val: User[]) => {
-  multipleSelection.value = val;
+const handleSelectionChange = (val: any[]) => {
+  selectData.value = val;
 };
 
 // 定义请求体
@@ -291,8 +386,8 @@ const page = reactive({
 function resetSearch() {
   searchText.value = "";
   searchType.value = "";
-  startTime.value = "";
-  endTime.value = "";
+  // startTime.value = "";
+  // endTime.value = "";
 }
 //获取表格数据
 const handlGetproductList = async () => {
@@ -318,6 +413,7 @@ const handlGetproductList = async () => {
         tableData.value.forEach((item: Product) => {
           item.tags = JSON.parse(item.tags || "");
           item.updateTime = item.updateTime.join("-");
+          item.product_status = item.product_status?"已上架":"已下架"
         });
         // console.log(tableData.value);
       });
@@ -326,18 +422,44 @@ const handlGetproductList = async () => {
   }
 };
 
-// 模拟的事件处理函数
-const editRow = (index: any, row: any) => {
-  console.log("编辑行:", index, row);
-};
+// 计算属性
+function buttonType(row:any) {
+  return row.product_status === '已上架' ? 'success' : 'info';
+}
+
+//修改商品上下架
+const setProductOnline = (index:any,row:any) => {
+  // console.log(row.product_status);
+  tableData.value[index].product_status = row.product_status == "已上架" ? "已下架" : "已上架";
+    axios
+      .put(`/products/${row.product_id}/status`,
+      //    {
+      //   product_status: row.product_status == "已上架" ? true : false,
+      // }
+    )
+      .then((res: AxiosResponse) => {
+        console.log(res.data);
+        ElMessage({
+          message: res.data.data,
+          type: "success",
+       });
+      })
+ 
+}
+
 //删除单个商品数据
 const deleteRow = (index: any, row: any) => {
   console.log("删除行:", index, row);
   // 在实际应用中，你可能需要从 data 数组中移除该行
   tableData.value.splice(indexdata, 1);
-  // console.log(rowdata.value.product_id);
-  axios
-    .delete(`/products/${rowdata.value.product_id}`)
+  // console.log(row.product_id);
+  ElMessageBox.confirm("确认删除数据？(无法恢复！)", "删除警告", {
+    type: "warning",
+    icon: markRaw(Delete),
+  })
+  .then(()=>{
+    axios
+    .delete(`/products/${row.product_id}`)
     .then((res: AxiosResponse) => {
       console.log(res.data);
       ElMessage({
@@ -353,16 +475,38 @@ const deleteRow = (index: any, row: any) => {
       });
       deletedialogVisible.value = false;
     });
+  })
 };
+
 //批量删除商品数据
-const deleteRows = () => {
-  // 在实际应用中，你可能需要从 data 数组中移除这些行
-  multipleSelection.value.forEach((item: Product) => {
-    const index = tableData.value.indexOf(item);
-    if (index > -1) {
-      tableData.value.splice(index, 1);
-    }
-  });
+const delData = () => {
+  if (selectData.value.length === 0) {
+    ElMessage.warning("请选择要删除的数据");
+    return;
+  }
+  ElMessageBox.confirm("确认删除所选数据？(无法恢复！)", "删除警告", {
+    type: "warning",
+    icon: markRaw(Delete),
+  })
+    .then(() => {
+      // console.log(selectData.value)
+      const selectId = selectData.value.map((item: any) => item.product_id);
+      // console.log(selectId); // 输出商品ID列表
+      axios.post("/products/deleteall", selectId 
+      )
+      .then((res) => {
+        console.log(res.data);
+        selectData.value = [];
+        ElMessage.success("删除成功");
+        handlGetproductList();
+      })
+      .catch((error) => {
+        console.error('删除失败', error);
+      });
+    })
+    .catch(() => {
+      // catch error
+    });
 };
 
 //请求分类id列表
@@ -380,35 +524,11 @@ const handleCategory = () => {
     });
 };
 
-// 计算属性来转换上下架名称
-// const transformedTableData = computed(() => {
-//   return tableData.value.map(item => {
-//     const categoryName = categoryMapping[item.category_id] || '未知分类';
-//     return {
-//       ...item,
-//       category_id: categoryName
-//     };
-//   });
-// });
-// console.log(transformedTableData);
-
 // 当组件挂载时执行数据请求
 onMounted(() => {
   handleCategory();
   handlGetproductList();
 });
-
-// 格式化日期的函数git p
-// function formatToCustomString(date: Date): string {
-//   const year = date.getFullYear();
-//   const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份是从 0 开始的，所以加 1
-//   const day = String(date.getDate()).padStart(2, "0");
-//   const hours = String(date.getHours()).padStart(2, "0");
-//   const minutes = String(date.getMinutes()).padStart(2, "0");
-//   const seconds = String(date.getSeconds()).padStart(2, "0");
-
-//   return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-// }
 
 // 分页
 function handleCurrentChange(val: number) {

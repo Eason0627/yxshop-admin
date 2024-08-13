@@ -63,12 +63,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, inject, watchEffect } from "vue";
-// import { Axios } from "axios";
+import { ref, watchEffect } from "vue";
 import { formatDate } from "@/utils/formatDate";
 import Shop from "@/model/Shop";
 import { ElMessage } from "element-plus";
-// const axios: Axios = inject("axios") as Axios; /// axios 实例
 
 interface Props {
   tableData?: Shop[] | undefined;
