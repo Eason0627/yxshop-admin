@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard w-full h-full p-3 pb-24 overflow-y-auto">
-    <div class="content flex w-full">
+    <div class="container mx-auto flex w-full">
       <div class="left flex-1 h-full mr-6">
         <div class="common w-full p-4 bg-white">
           <!-- 搜索功能 -->

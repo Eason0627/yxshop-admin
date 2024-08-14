@@ -1,7 +1,7 @@
 <template>
   <div class="list w-full h-full p-4 pb-24">
     <div
-      class="content flex flex-col w-full h-full border-[1px] border-[--info-border-color] rounded-md overflow-y-auto bg-white"
+      class="container flex flex-col w-full h-full mx-auto border-[1px] border-[--info-border-color] rounded-md overflow-y-auto bg-white"
     >
       <Query
         :tableData="shopList"
@@ -19,7 +19,7 @@
           :data="searchList.length ? searchList : shopList"
           :empty-text="'暂无数据'"
           v-loading="loading"
-          :max-height="tableBox?.scrollHeight"
+          :height="tableBox?.scrollHeight"
           border
           @select="handleSelect"
           @select-all="handleSelectAll"
@@ -134,7 +134,6 @@ import { ref, reactive, inject, onMounted, markRaw, onBeforeMount } from "vue";
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { Axios, AxiosResponse } from "axios";
-import { formatDate } from "@/utils/formatDate";
 import Shop from "@/model/Shop";
 import User, { Role } from "@/model/User";
 import Query from "./Query.vue";
@@ -384,21 +383,9 @@ const getData = async () => {
         await axios.get(`/users/${item.owner_user_id}`).then((res) => {
           item.owner_user = res.data.data;
         });
-        let array: any = item.createTime;
-        item.createTime = formatDate(
-          new Date(
-            array[0],
-            array[1] - 1,
-            array[2],
-            array[3],
-            array[4],
-            array[5]
-          ),
-          "yyyy-MM-dd hh:mm:ss"
-        );
       });
       // 根据店铺状态排序
-      page.total = res.data.data.total;
+      page.total = parseInt(res.data.data.total);
       setTimeout(() => {
         shopList.value = sortShopStatus(res.data.data.list);
         loading.value = false;
