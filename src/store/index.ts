@@ -2,6 +2,25 @@
 import { defineStore } from "pinia";
 import { RouteLocationNormalized } from "vue-router";
 
+export const userShopStore = defineStore("ShopInfo",{
+  state: () =>({
+    currentShop:{},
+    shopList:[]
+  }),
+  getters: {
+    getCurrentShop: (state) => state.currentShop,
+    getShopList: (state) => {return state.shopList}
+  },
+  actions: {
+    setCurrentShop(shop:any){
+      this.currentShop = shop
+    },
+    setShopList(shopList:any){
+      this.shopList = shopList
+    }
+  }
+})
+
 export const useRememberMeStore = defineStore("rememberMe", {
   state: () => ({
     rememberMe: false,

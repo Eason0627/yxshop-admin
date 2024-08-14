@@ -66,15 +66,20 @@
             @mouseleave="menuShow = false"
             v-show="menuShow"
           >
-            <div
-              class="document flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
-            >
+            <div class="document flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10">
               <el-icon><Switch /></el-icon>
-              <span class="ml-2">切换店铺</span>
+              <span class="ml-2 truncate">切换<span class="text-cyan-500 w-[80px] ">({{ CurrentShopName }})</span></span>
             </div>
-            <div
-              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
-            ></div>
+            <ul class=" shopListShow absolute w-full bg-white p-[15px] rounded left-[-101%] top-0 shadow-lg "
+            >
+                <li class="border-b-[1px]">店铺列表：</li>
+                <li class="my-2 hover:bg-[#f6f6f6] cursor-pointer rounded" 
+                v-for="(item) in shopList"
+                @click="selectShop(item.shop_id, item.shop_name)"
+                >{{item.shop_name}}</li>
+              </ul>
+
+            <div class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"></div>
             <div
               class="lock flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
             >
@@ -101,11 +106,14 @@
 <script setup lang="ts">
 /// 导入事件总线
 import bus from "@/utils/event-bus.ts";
-import { ref, onBeforeMount, onMounted, inject } from "vue";
+import { ref, onBeforeMount, onMounted, inject,  reactive } from "vue";
 import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
+import { userShopStore } from "@/store/index";
+import { ElNotification } from 'element-plus'
+
 
 // 注入默认头像
 const defaultAvatar = inject("defaultAvatar");
@@ -119,6 +127,9 @@ const isCollapse = ref(true);
 // 用户菜单显示状态
 const menuShow = ref(false);
 const mouseInMenu = ref(false);
+
+
+
 
 let user: User;
 // 侧边导航展开收起
@@ -157,10 +168,42 @@ const getRouteInfo = () => {
   }
 };
 
+const ShopStore = userShopStore();
+let CurrentShopName:string = reactive("");
+//店铺id
+const shopList = ref([]);
+const getShops = async () => {
+  await axios.get(`/shops/getShopByUserId/${user.id}`).then((res) => {
+    // 存储到 pinia
+    ShopStore.setShopList(res.data.data);
+    shopList.value = res.data.data.map((item:any) => ({
+      shop_id:item.shop_id,
+      shop_name:item.shop_name
+    }))
+    ShopStore.setCurrentShop({id:shopList.value[0].shop_id, name:shopList.value[0].shop_name})
+    CurrentShopName = shopList.value[0].shop_name;
+    // console.log(ShopStore.getCurrentShop);
+    // console.log(ShopStore.getShopList)
+   
+  });
+};
+const selectShop = (id:any,name:any) =>{
+  // console.log(id,name)
+  ShopStore.setCurrentShop({id:id,name:name})
+  CurrentShopName = name
+  console.log(ShopStore.getCurrentShop);
+  ElNotification({
+    title: '切换店铺成功',
+    message: '切换为'+name+'店铺',
+    type: 'success',
+  })
+}
+
 const getUserInfo = async () => {
   await axios.get("/users/" + user.id).then((res) => {
     if (res.data.code === 200) {
       user = res.data.data;
+      // console.log(user)
     } else {
       PopUp.getInstance(Type.error, res.data.msg).show();
       toLogin();
@@ -202,9 +245,17 @@ onBeforeMount(() => {
 
 onMounted(async () => {
   await getUserInfo();
+  getShops()
 });
 </script>
 <style lang="scss" scoped>
+.shopListShow{
+  // opacity: 0;
+  transition: opacity 0.3s;
+}
+.document:hover .shopListShow{
+  opacity: 1!important;
+}
 .topTools {
   display: flex;
   justify-content: space-between;
