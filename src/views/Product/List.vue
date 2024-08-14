@@ -202,7 +202,6 @@
       </div>
     </div>
 
-    
 
     <!-- 修改弹窗 -->
     <UpdateDialog
@@ -369,9 +368,17 @@ interface Category {
   category_id: number;
   category_name: string;
 }
+// 正确定义并初始化brandList
+const brandList = ref<{ id: any; label: any }[]>([]);
+//定义品牌类型
+interface Brand {
+  brand_id: number;
+  brand_name: string;
+}
 
 // 示例数据
 let tableData: Ref<Product[]> = ref([] as Product[]);
+
 const categoryList:Ref<{
 [x: string]: any; [key: number]: any 
 }> = ref({});
@@ -379,7 +386,7 @@ const categoryList:Ref<{
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>();
 const selectData = ref<any>([]);
-
+//选择列表
 const handleSelectionChange = (val: any[]) => {
   selectData.value = val;
 };
@@ -501,8 +508,6 @@ function getCategoryName(id: any) {
   return category ? category.label : '未知';
 }
 
-
-
 //修改商品上下架
 const setProductOnline = (index:any,row:any) => {
   // console.log(row.product_status);
@@ -598,6 +603,25 @@ const handleCategory = () => {
         label: item.category_name,
       }));
       // console.log(categoryList.value)
+    })
+    .catch((error: any) => {
+      console.error(error);
+    });
+};
+//请求品牌id列表
+
+const handleBrand = () => {
+  axios
+    .get(`/brand`)
+    .then((response: AxiosResponse) => {
+      const Data: Brand[] = response.data.data;
+      // brandList.value = Data;
+      // console.log(Data);
+      brandList.value = Data.map((item:any) => ({
+        id: item.brand_id,
+        label: item.brand_name,
+      }));
+      // console.log(brandList.value)
     })
     .catch((error: any) => {
       console.error(error);
