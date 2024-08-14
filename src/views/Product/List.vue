@@ -139,12 +139,23 @@
             sortable
           >
             <template #default="scope">
-              <el-button
-                size="small"
-                :type="buttonType(scope.row)"
-                @click="setProductOnline(scope.$index, scope.row)"
-                >{{ scope.row.product_status }}</el-button
+              <el-popconfirm
+                width="220"
+                confirm-button-text="确定"
+                cancel-button-text="取消"
+                :icon="InfoFilled"
+                icon-color="#626AEF"
+                title="确定上架/下架商品"
+                @confirm="setProductOnline(scope.$index, scope.row)"
               >
+                <template #reference>
+                  <el-button
+                  size="small"
+                  :type="buttonType(scope.row)"
+                  @click=""
+                  >{{ scope.row.product_status }}</el-button>
+                </template>
+              </el-popconfirm>
             </template>
           </el-table-column>
 
@@ -207,10 +218,11 @@ import { ref, reactive, inject, onMounted, Ref, markRaw, computed } from "vue";
 import { Axios, AxiosResponse } from "axios";
 
 import UpdateDialog from "./UpdateDialog.vue";
-import { ElMessage, ElMessageBox, ElTable } from "element-plus";
-import { Delete } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox, ElNotification, ElTable } from "element-plus";
+import { Delete,InfoFilled } from "@element-plus/icons-vue";
 import  {userShopStore}  from "@/store/index";
 import Product from "@/model/Product";
+
 
 
 // 获取 axios
@@ -395,9 +407,6 @@ function resetSearch() {
 
 // 获取当前店铺��数据
 const ShopInfo = userShopStore();
-// const currentShop = ShopInfo.currentShop;
-// const shopList = ShopInfo.shopList;
-// console.log(currentShop)
 
 //获取表格数据
 const handlGetproductList = async () => {
@@ -444,11 +453,11 @@ const handlGetproductList = async () => {
       product[searchType.value] = searchText.value; //赋值对象
     }
     if(!ShopInfo.getCurrentShop.id){
-      ElMessage({
-            message: '亲，没有绑定店铺，无法查询',
-            type: 'warning',
-            center: true,
-          });
+      ElNotification({
+      title: 'Error',
+      message: '亲，没有绑定店铺，无法查询',
+      type: 'error',
+    })
       return
     }
     product["shop_id"] = ShopInfo.getCurrentShop.id; //赋值对象
