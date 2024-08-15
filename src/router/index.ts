@@ -164,7 +164,7 @@ const routes = [
       {
         path: "/shop/info",
         name: "店铺信息",
-        component: () => import("@/views/Shop/List/Info.vue"),
+        component: () => import("@/views/Shop/Info.vue"),
       },
       {
         path: "/shop/custom",

@@ -446,7 +446,7 @@ const handlGetproductList = async () => {
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
           item.tags = JSON.parse(item.tags || "");
-          item.updateTime = item.updateTime.join("-");
+          // item.updateTime = item.updateTime.join("-");
           item.product_status = item.product_status?"已上架":"已下架"
         });
         // console.log(tableData.value);
@@ -468,6 +468,7 @@ const handlGetproductList = async () => {
       return
     }
     product["shop_id"] = ShopInfo.getCurrentShop.id; //赋值对象
+    console.log(JSON.stringify(product))
       await axios
       .post("/products/getall", JSON.stringify(product), {
         params: {
@@ -488,10 +489,10 @@ const handlGetproductList = async () => {
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
           item.tags = JSON.parse(item.tags || "");
-          item.updateTime = item.updateTime.join("-");
+          // item.updateTime = item.updateTime.join("-");
           item.product_status = item.product_status?"已上架":"已下架"
         });
-        // console.log(tableData.value);
+        console.log(tableData.value);
       });
     
   }

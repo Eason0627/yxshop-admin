@@ -169,7 +169,7 @@ const getRouteInfo = () => {
 };
 
 const ShopStore = userShopStore();
-let CurrentShopName:string = reactive("");
+let CurrentShopName = ref("");
 //店铺id
 const shopList = ref([]);
 const getShops = async () => {
@@ -182,8 +182,8 @@ const getShops = async () => {
     }))
     ShopStore.setCurrentShop({id:shopList.value[0].shop_id, name:shopList.value[0].shop_name})
     CurrentShopName = shopList.value[0].shop_name;
-    // console.log(ShopStore.getCurrentShop);
-    // console.log(ShopStore.getShopList)
+    console.log(ShopStore.getCurrentShop);
+    console.log(ShopStore.getShopList)
    
   });
 };
