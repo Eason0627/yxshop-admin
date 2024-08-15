@@ -89,11 +89,11 @@
             required
           ></el-input>
         </el-form-item>
-        <el-form-item label="店铺状态">
+        <el-form-item label="店铺状态" prop="status" required>
           <el-select v-model="shop.status" placeholder="设置店铺状态">
-            <el-option label="正常营业" :value="Status.Active" />
-            <el-option label="待审核" :value="Status.Inactive" />
-            <el-option label="已注销" :value="Status.Invalid" />
+            <el-option label="正常营业" value="Active" />
+            <el-option label="待审核" value="Inactive" />
+            <el-option label="已注销" value="Invalid" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -111,7 +111,7 @@
 <script setup lang="ts">
 import { ref, reactive, watchEffect } from "vue";
 import FileUploader from "@/components/upload/FileUploader.vue";
-import Shop, { Status } from "@/model/Shop";
+import Shop from "@/model/Shop";
 import { ElMessage, FormInstance, FormRules } from "element-plus";
 import axios from "@/utils/axios";
 import { AxiosResponse } from "axios";
@@ -171,6 +171,9 @@ const rules = reactive<FormRules<Shop>>({
     { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
   ],
   shop_image: [{ required: true, message: "请上传店铺图片", trigger: "blur" }],
+  status: [
+    { required: true, message: "请选择店铺负责人", trigger: "change" },
+  ],
 });
 
 // 清空新增分类表单
@@ -184,7 +187,7 @@ const clearData = () => {
     registration_date: "",
     shop_description: "",
     shop_image: "",
-    status: Status.Active,
+    status: "Active",
   };
 };
 
