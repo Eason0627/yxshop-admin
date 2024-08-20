@@ -8,7 +8,7 @@
         :selectData="selectData"
         :delData="delData"
         @update:Query="updateQuery"
-        @getData="getData"
+        @getBrandData="getBrandData"
         @search="search"
         @reSet="reSet"
       ></Query>
@@ -16,7 +16,7 @@
         <el-table
           class="mt-[-1]"
           ref="multipleTableRef"
-          :data="searchList.length ? searchList : brandList"
+          :data="searchList.length !=0 ? searchList : brandList"
           :empty-text="'暂无数据'"
           v-loading="loading"
           :height="tableBox?.scrollHeight"
@@ -36,12 +36,12 @@
           >
             <template v-if="item.type === 'image'" #default="scope">
               <el-image
-                :src="scope.row.shop_image"
+                :src="scope.row.logo_url"
                 :zoom-rate="1.2"
                 :max-scale="7"
                 :min-scale="0.2"
                 preview-teleported
-                :preview-src-list="[scope.row.shop_image]"
+                :preview-src-list="[scope.row.logo_url]"
                 fit="cover"
                 style="width: 64px; height: 64px"
               />
@@ -120,7 +120,7 @@
       :dialogVisible="dialogVisible"
       :dialogType="dialogType"
       :brand="brand"
-      @getData="getData"
+      @getBrandData="getBrandData"
       @update:Dialog="updateDialog"
     ></Dialog>
   </div>
@@ -134,7 +134,7 @@ import { ref, reactive, inject, onMounted, markRaw, onBeforeMount } from "vue";
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { Axios, AxiosResponse } from "axios";
-import { formatDate } from "@/utils/formatDate";
+// import { formatDate } from "@/utils/formatDate";
 import User, { Role } from "@/model/User";
 import Brand from "@/model/Brand";
 import Query from "./Query.vue";
@@ -148,13 +148,13 @@ const loading = ref(false); // 数据加载状态
 const dialogVisible = ref(false); // 弹框显隐
 const dialogType = ref(""); // 弹框类型
 let brand = ref<Brand>({
-  brandId: "",
-  shopId: "",
-  brandName: "",
+  brand_id: "",
+  shop_id: "",
+  brand_name: "",
   description: "",
-  logoUrl: "",
+  logo_url: "",
 }); // 弹框数据对象
-const requestJSON = {};
+const requestJSON: Record<string, any> = {};
 const tableHeader = [
   {
     type: "selection",
@@ -162,12 +162,12 @@ const tableHeader = [
   },
   {
     label: "品牌图片",
-    prop: "logoUrl",
+    prop: "logo_url",
     type: "image",
   },
   {
     label: "品牌名称",
-    prop: "brandName",
+    prop: "brand_name",
     type: "default",
   },
   {
@@ -217,6 +217,7 @@ const updateQuery = (formData?: Brand, flag?: boolean, type?: string) => {
   }
   if (flag !== undefined) {
     dialogVisible.value = flag;
+
   }
   if (type !== undefined) {
     dialogType.value = type;
@@ -257,7 +258,7 @@ const search = (
 // 重置数据
 const reSet = async () => {
   searchList.value = [];
-  await getData();
+  // await getData();
 };
 
 // 编辑数据项
@@ -276,7 +277,7 @@ const deleteRow = async (index: number, row: Brand) => {
     icon: markRaw(Delete),
   })
     .then(async () => {
-      await delBrands([row.brandId]);
+      await delBrands([row.brand_id]);
     })
     .catch(() => {
       // catch error
@@ -306,7 +307,7 @@ const delData = async () => {
     .then(async () => {
       // 获取选中项的id
       const selectId = selectData.value.map((item: Brand) => {
-        return item.brandId;
+        return item.brand_id;
       });
       // 删除数据
       await delBrands(selectId);
@@ -320,12 +321,12 @@ const delData = async () => {
 // 分页
 async function handleCurrentChange(val: number) {
   page.pageNum = val;
-  await getData();
+  // await getData();
 }
 
 async function handleSizeChange(val: number) {
   page.currentPage = val;
-  await getData();
+  // await getData();
 }
 
 // 根据店铺状态排序
@@ -348,9 +349,11 @@ function sortBrandStatus(list: Brand[]) {
 }
 
 // 获取数据
-const getData = async () => {
+const getBrandData = async () => {
   loading.value = true;
   // 发起请求 --- 获取 品牌数据
+  const currentShop = JSON.parse(localStorage.getItem("currentShop")||"");
+  requestJSON.shop_id = currentShop.id;
   await axios
     .get("/brands/getBrandPagination", {
       params: {
@@ -359,50 +362,30 @@ const getData = async () => {
         brand: JSON.stringify(requestJSON),
       },
     })
-    .then(async (res: AxiosResponse<any>) => {
-      // 将店铺负责人信息绑定
-      res.data.data.list.forEach(async (item: Brand) => {
-        await axios.get(`/shops/${item.shopId}`).then((res) => {
-          item.shop = res.data.data;
-        });
-        let array: any = item.createTime;
-        item.createTime = formatDate(
-          new Date(
-            array[0],
-            array[1] - 1,
-            array[2],
-            array[3],
-            array[4],
-            array[5]
-          ),
-          "yyyy-MM-dd hh:mm:ss"
-        );
-      });
+    .then((res: AxiosResponse<any>) => {
       // 根据店铺状态排序
-      page.total = res.data.data.total;
-      setTimeout(() => {
-        brandList.value = sortBrandStatus(res.data.data.list);
-        loading.value = false;
-        console.log(brandList.value);
-      }, 1000);
+      console.log(res.data.records)
+      brandList.value = res.data.records;
+      brandList.value = sortBrandStatus(brandList.value);
+      page.total = parseInt(res.data.total);
+      loading.value = false;
     })
     .catch(() => {
       ElMessage.error("获取品牌数据失败！");
       loading.value = false;
     });
 
-  // 获取用户数据
-  // axios.get("/users")
 };
 
 // 删除店铺
 const delBrands = async (list: any) => {
+  console.log(list)
   await axios
-    .post("/brands/delBrand", list)
+    .post(`/brands/delAll`,list)
     .then((res) => {
       if (res.data.code == 200) {
         ElMessage.success("删除品牌成功！");
-        getData();
+        getBrandData();
       }
     })
     .catch((e) => {
@@ -416,10 +399,11 @@ onBeforeMount(async () => {
   switch (role) {
     case Role.Admin || "Admin":
       // 当前用户为管理员，获取所有信息
-      await getData();
+      await getBrandData();
       break;
     case Role.ShopOwner:
       // 当前用户为商家，商家所有信息
+      await getBrandData();
       break;
     case Role.Customer:
       // 当前用户为顾客
@@ -428,7 +412,9 @@ onBeforeMount(async () => {
 });
 
 // 当组件挂载时执行数据请求
-onMounted(() => {});
+onMounted(() => {
+  // getBrandData();
+});
 </script>
 
 <style lang="scss" scoped></style>

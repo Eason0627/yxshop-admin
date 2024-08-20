@@ -4,7 +4,7 @@ import { RouteLocationNormalized } from "vue-router";
 
 export const userShopStore = defineStore("ShopInfo",{
   state: () =>({
-    currentShop:{},
+    currentShop: JSON.parse(localStorage.getItem("currentShop") || "{}"),
     shopList:[]
   }),
   getters: {
@@ -13,7 +13,7 @@ export const userShopStore = defineStore("ShopInfo",{
   },
   actions: {
     setCurrentShop(shop:any){
-      this.currentShop = shop
+      localStorage.setItem("currentShop",JSON.stringify(shop))
     },
     setShopList(shopList:any){
       this.shopList = shopList

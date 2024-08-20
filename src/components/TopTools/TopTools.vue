@@ -49,11 +49,14 @@
       <div class="user relative">
         <div
           class="userInfo flex items-center w-full h-full px-3"
-          @mouseover="onMouseOver"
-          @mouseout="onMouseOut"
+          @mouseover="onMenuMouseOver"
+          @mouseout="onMenuMouseOut($event)"
         >
           <div class="avatar mr-2">
-            <img :src="user.avatar ? user.avatar : defaultAvatar " alt="用户头像" />
+            <img
+              :src="user.avatar ? user.avatar : defaultAvatar"
+              alt="用户头像"
+            />
           </div>
           <div class="username">
             {{ user.nick_name }}
@@ -62,32 +65,83 @@
         <Transition name="fade">
           <ul
             class="userMenu absolute top-[110%] w-full p-1 text-left text-sm border-[1px] rounded-md shadow-lg bg-white z-10"
-            @mouseenter="menuShow = true"
-            @mouseleave="menuShow = false"
+            @mouseenter="onMenuMouseenter(true, $event)"
+            @mouseleave="onMenuMouseLeave(false, $event)"
             v-show="menuShow"
           >
-            <div class="document flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10">
-              <el-icon><Switch /></el-icon>
-              <span class="ml-2 truncate">切换<span class="text-cyan-500 w-[80px] ">({{ CurrentShopName }})</span></span>
-            </div>
-            <ul class=" shopListShow absolute w-full bg-white p-[15px] rounded left-[-101%] top-0 shadow-lg "
-            >
-                <li class="border-b-[1px]">店铺列表：</li>
-                <li class="my-2 hover:bg-[#f6f6f6] cursor-pointer rounded" 
-                v-for="(item) in shopList"
-                @click="selectShop(item.shop_id, item.shop_name)"
-                >{{item.shop_name}}</li>
-              </ul>
-
-            <div class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"></div>
             <div
-              class="lock flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
+              class="currentShop flex items-center w-full px-4 py-1 rounded-md bg-[--theme-color] text-white transition-all duration-300 z-10"
+            >
+              <span class="iconfont">&#xe678;</span>
+              <span class="ml-2">{{ CurrentShop?.shop_name }}</span>
+            </div>
+            <div
+              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
+            ></div>
+            <div
+              class="document relative flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
+              @mouseover="onShopMouseOver"
+              @mouseout="onShopMouseOut($event)"
+            >
+              <el-icon><Switch /></el-icon>
+              <span class="ml-2 truncate">切换店铺</span>
+              <span
+                class="inline-block w-4 h-4 ml-2 rounded-full text-white text-center text-xs bg-cyan-500"
+                >{{ shopList.length }}
+              </span>
+              <Transition name="fade">
+                <ul
+                  class="shopMenu absolute top-0 right-[105%] flex flex-col w-full p-1 text-left text-sm border-[1px] rounded-md bg-white shadow-lg transition-all duration-300 z-10"
+                  @mouseenter="onShopMouseenter(true, $event)"
+                  @mouseleave="onShopMouseLeave(false, $event)"
+                  v-show="shopShow"
+                >
+                  <li
+                    class="flex items-center px-4 py-1 hover:bg-[--info-bg-hover-color] cursor-pointer rounded"
+                    :style="{
+                      backgroundColor:
+                        item.shop_id === CurrentShop?.shop_id
+                          ? 'var(--info-bg-color)'
+                          : '',
+                      color:
+                        item.shop_id === CurrentShop?.shop_id
+                          ? 'var(--success-color)'
+                          : '',
+                      cursor:
+                        item.shop_id === CurrentShop?.shop_id
+                          ? 'not-allowed'
+                          : '',
+                    }"
+                    v-for="item in shopList"
+                    @click="selectShop(item)"
+                  >
+                    <span
+                      class="circle inline-block w-2 h-2 mr-2 rounded-full text-white text-center text-xs"
+                      :style="{
+                        backgroundColor:
+                          item.status === 'Active'
+                            ? 'var(--success-color)'
+                            : item.status === 'Inactive'
+                            ? 'var(--warning-color)'
+                            : 'var(--error-color)',
+                      }"
+                    ></span>
+                    <span class="name truncate">{{ item.shop_name }}</span>
+                  </li>
+                </ul>
+              </Transition>
+            </div>
+            <div
+              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
+            ></div>
+            <div
+              class="lock flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
             >
               <el-icon><Lock /></el-icon>
               <span class="ml-2">锁定屏幕</span>
             </div>
             <div
-              class="logout flex items-center w-full px-4 py-1 rounded-md transition-all duration-300 z-10"
+              class="logout flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
               @click="toLogin()"
             >
               <el-icon><SwitchButton /></el-icon>
@@ -106,17 +160,17 @@
 <script setup lang="ts">
 /// 导入事件总线
 import bus from "@/utils/event-bus.ts";
-import { ref, onBeforeMount, onMounted, inject,  reactive } from "vue";
+import { ref, onBeforeMount, onMounted, inject } from "vue";
 import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
 import { userShopStore } from "@/store/index";
-import { ElNotification } from 'element-plus'
-
+import { ElMessageBox, ElNotification } from "element-plus";
+import type Shop from "@/model/Shop";
 
 // 注入默认头像
-const defaultAvatar = inject("defaultAvatar");
+const defaultAvatar = inject("defaultAvatar") as string;
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
@@ -127,19 +181,21 @@ const isCollapse = ref(true);
 // 用户菜单显示状态
 const menuShow = ref(false);
 const mouseInMenu = ref(false);
+const shopShow = ref(false);
+const mouseInShop = ref(false);
 
-
-
-
+// 当前登录用户
 let user: User;
-// 侧边导航展开收起
-const toggleCollapse = () => {
-  isCollapse.value = !isCollapse.value;
-  bus.emit("zoom", isCollapse.value);
-};
+
+const ShopStore = userShopStore();
+let CurrentShop = ref<Shop>();
+//店铺id
+const shopList = ref<Shop[]>([]);
 
 const router = useRouter();
 let currentRoute: any = ref(router.currentRoute.value);
+let sameRoute: any = ref([]);
+
 // 使用全局前置守卫更新路由信息
 router.beforeEach((to, _from, next) => {
   // 更新当前路由引用
@@ -151,7 +207,11 @@ router.beforeEach((to, _from, next) => {
   next();
 });
 
-let sameRoute: any = ref([]);
+// 侧边导航展开收起
+const toggleCollapse = () => {
+  isCollapse.value = !isCollapse.value;
+  bus.emit("zoom", isCollapse.value);
+};
 
 const getRouteInfo = () => {
   // 使用 router.match 方法来获取匹配的路由记录
@@ -168,36 +228,58 @@ const getRouteInfo = () => {
   }
 };
 
-const ShopStore = userShopStore();
-let CurrentShopName = ref("");
-//店铺id
-const shopList = ref([]);
 const getShops = async () => {
   await axios.get(`/shops/getShopByUserId/${user.id}`).then((res) => {
     // 存储到 pinia
     ShopStore.setShopList(res.data.data);
-    shopList.value = res.data.data.map((item:any) => ({
-      shop_id:item.shop_id,
-      shop_name:item.shop_name
-    }))
-    ShopStore.setCurrentShop({id:shopList.value[0].shop_id, name:shopList.value[0].shop_name})
-    CurrentShopName = shopList.value[0].shop_name;
-    console.log(ShopStore.getCurrentShop);
-    console.log(ShopStore.getShopList)
-   
+    shopList.value = res.data.data.map((item: any) => ({
+      shop_id: item.shop_id,
+      shop_name: item.shop_name,
+      status: item.status,
+    }));
+    ShopStore.setCurrentShop({
+      id: shopList.value[0].shop_id,
+      name: shopList.value[0].shop_name,
+      status: shopList.value[0].status,
+    });
+    CurrentShop.value = shopList.value[0];
   });
 };
-const selectShop = (id:any,name:any) =>{
-  // console.log(id,name)
-  ShopStore.setCurrentShop({id:id,name:name})
-  CurrentShopName = name
-  console.log(ShopStore.getCurrentShop);
-  ElNotification({
-    title: '切换店铺成功',
-    message: '切换为'+name+'店铺',
-    type: 'success',
+const selectShop = (item: Shop) => {
+  if (item.shop_id == CurrentShop.value?.shop_id) {
+    return;
+  }
+  if (item.status === "Invalid") {
+    return PopUp.getInstance(Type.error, "店铺已注销").show();
+  }
+  ElMessageBox.confirm("是否切换店铺？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
   })
-}
+    .then(() => {
+      ShopStore.setCurrentShop({
+        id: item.shop_id,
+        name: item.shop_name,
+        status: item.status,
+      });
+      CurrentShop.value = item;
+      ElNotification({
+        title: "切换店铺成功",
+        message: "切换为" + item.shop_name + "店铺",
+        type: "success",
+      });
+    })
+    .catch(() => {});
+  // console.log(id,name)
+  // ShopStore.setCurrentShop({ id: id, name: name });
+  // CurrentShopName = name;
+  // ElNotification({
+  //   title: "切换店铺成功",
+  //   message: "切换为" + name + "店铺",
+  //   type: "success",
+  // });
+};
 
 const getUserInfo = async () => {
   await axios.get("/users/" + user.id).then((res) => {
@@ -221,15 +303,64 @@ const toLogin = () => {
   router.replace("/login");
 };
 
-const onMouseOver = () => {
+const onMenuMouseOver = () => {
   menuShow.value = true;
-  mouseInMenu.value = true;
 };
-const onMouseOut = (event: any) => {
-  // 检查鼠标是否离开了 userInfo
+
+const onShopMouseOver = () => {
+  shopShow.value = true;
+};
+const onMenuMouseOut = (event: any) => {
+  // 检查鼠标是否离开了
   const isOutside = !event.currentTarget.contains(event.relatedTarget);
+
   if (isOutside && !mouseInMenu.value) {
     menuShow.value = false;
+  }
+};
+
+const onShopMouseOut = (event: any) => {
+  // 检查鼠标是否离开了
+  const isOutside = !event.currentTarget.contains(event.relatedTarget);
+
+  if (isOutside && !mouseInShop.value) {
+    shopShow.value = false;
+  }
+};
+
+const onMenuMouseenter = (flag: boolean, event: any) => {
+  const isInside = !event.currentTarget.contains(event.relatedTarget);
+
+  if (isInside) {
+    menuShow.value = flag;
+    mouseInMenu.value = flag;
+  }
+};
+
+const onShopMouseenter = (flag: boolean, event: any) => {
+  const isInside = !event.currentTarget.contains(event.relatedTarget);
+
+  if (isInside) {
+    shopShow.value = flag;
+    mouseInShop.value = flag;
+  }
+};
+
+const onMenuMouseLeave = (flag: boolean, event: any) => {
+  const isOutside = !event.currentTarget.contains(event.relatedTarget);
+
+  if (isOutside) {
+    menuShow.value = flag;
+    mouseInMenu.value = flag;
+  }
+};
+
+const onShopMouseLeave = (flag: boolean, event: any) => {
+  const isOutside = !event.currentTarget.contains(event.relatedTarget);
+
+  if (isOutside) {
+    shopShow.value = flag;
+    mouseInShop.value = flag;
   }
 };
 
@@ -245,16 +376,16 @@ onBeforeMount(() => {
 
 onMounted(async () => {
   await getUserInfo();
-  getShops()
+  getShops();
 });
 </script>
 <style lang="scss" scoped>
-.shopListShow{
+.shopListShow {
   // opacity: 0;
   transition: opacity 0.3s;
 }
-.document:hover .shopListShow{
-  opacity: 1!important;
+.document:hover .shopListShow {
+  opacity: 1 !important;
 }
 .topTools {
   display: flex;
@@ -362,12 +493,6 @@ onMounted(async () => {
           // 禁止文字换行
           white-space: nowrap;
           overflow: hidden;
-        }
-      }
-
-      .userMenu {
-        div:hover {
-          background: #f6f6f6;
         }
       }
     }

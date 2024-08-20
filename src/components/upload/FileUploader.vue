@@ -1,21 +1,8 @@
 <template>
-  <el-upload
-    ref="uploadRef"
-    :action="uploadAction"
-    :multiple="multiple"
-    :headers="headers"
-    :limit="limit"
-    :file-list="fileList"
-    :auto-upload="auto"
-    :on-change="handleChange"
-    :on-remove="handleRemove"
-    :before-upload="beforeUpload"
-    :on-exceed="handleExceed"
-    :on-success="handleSuccess"
-    :on-error="handleError"
-    list-type="picture-card"
-    :class="{ 'is-disabled': disabled }"
-  >
+  <el-upload ref="uploadRef" :action="uploadAction" :multiple="multiple" :headers="headers" :limit="limit"
+    :file-list="fileList" :auto-upload="auto" :on-change="handleChange" :on-remove="handleRemove"
+    :before-upload="beforeUpload" :on-exceed="handleExceed" :on-success="handleSuccess" :on-error="handleError"
+    list-type="picture-card" :class="{ 'is-disabled': disabled }">
     <el-icon>
       <UploadFilled />
     </el-icon>
@@ -57,8 +44,8 @@ const props = withDefaults(defineProps<Props>(), {
   auto: false,
   // fileList: any[],
   beforeUpload: () => true,
-  onSuccess: () => {},
-  onError: () => {},
+  onSuccess: () => { },
+  onError: () => { },
 });
 
 const emit = defineEmits<Emits>();
@@ -101,8 +88,7 @@ function handleRemove(file: any, fileList: any) {
 
 function handleExceed(files: any, fileList: any) {
   ElMessage.warning(
-    `当前限制选择 ${props.limit} 个文件，本次选择了 ${
-      files.length
+    `当前限制选择 ${props.limit} 个文件，本次选择了 ${files.length
     } 个文件，共选择了 ${files.length + fileList.length} 个文件`
   );
 }
@@ -131,7 +117,8 @@ function handleError(error: any, file: any, fileList: any[]) {
   opacity: 0.6;
 }
 
-.el-upload--picture-card {
+.el-upload--picture-card,
+.el-upload-list__item {
   width: 96px !important;
   height: 96px !important;
   line-height: 96px !important;
