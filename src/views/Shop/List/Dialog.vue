@@ -2,6 +2,7 @@
   <el-dialog
     v-model="dialogVisible"
     width="500"
+    :close-on-press-escape="false"
     @close="onCancel"
     destroy-on-close
   >
@@ -10,7 +11,7 @@
     </template>
     <div class="content flex justify-center items-center p-4">
       <el-form
-        ref="shopFormRef"
+        ref="FormRef"
         class="w-full"
         label-position="left"
         label-width="100px"
@@ -26,6 +27,7 @@
         >
           <div
             class="image relative flex justify-center items-center w-24 h-24 rounded-md overflow-hidden"
+            @mouseover="onMouseOver($event)"
             v-if="shop.shop_image"
           >
             <el-image
@@ -38,6 +40,30 @@
               fit="cover"
               style="width: 100%; height: 100%"
             />
+            <el-image-viewer
+              v-if="showImageViewer"
+              :url-list="[shop.shop_image]"
+              @close="closeViewer"
+            ></el-image-viewer>
+            <Transition name="fade">
+              <div
+                class="preview absolute flex justify-center items-center w-full h-full"
+                @mouseout="onMouseOut($event)"
+                v-show="editImage"
+              >
+                <div
+                  class="mask absolute w-full h-full bg-black opacity-40 z-5"
+                ></div>
+                <div class="flex items-center text-white text-xl z-10">
+                  <span class="mr-2 cursor-pointer" @click="zoomIn">
+                    <el-icon><ZoomIn /></el-icon>
+                  </span>
+                  <span class="cursor-pointer" @click="delShopImage">
+                    <el-icon><Delete /></el-icon>
+                  </span>
+                </div>
+              </div>
+            </Transition>
           </div>
           <div class="upload w-24 h-24 overflow-hidden" v-else>
             <FileUploader
@@ -101,9 +127,7 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="onCancel">取消</el-button>
-        <el-button type="primary" @click="onConfirm(shopFormRef)">
-          确定
-        </el-button>
+        <el-button type="primary" @click="onConfirm(FormRef)"> 确定 </el-button>
       </div>
     </template>
   </el-dialog>
@@ -122,8 +146,6 @@ interface Props {
   dialogVisible?: boolean;
   dialogType?: string;
   shop?: Shop | undefined;
-  //   onConfirm: (shopFormRef: FormInstance | undefined) => boolean;
-  //   onCancel: () => void;
 }
 
 // 自定义事件
@@ -145,11 +167,13 @@ const emit = defineEmits<Emits>();
 
 const dialogVisible = ref(false); // 弹框显隐
 const dialogType = ref(""); // 弹框类型
-const shopImage = ref("");
+const showImageViewer = ref(false); // 图片预览组件显隐
+const shopImage = ref(""); // 图片占位 base64
+const editImage = ref(false); // 编辑图片工具显隐
 const shop = ref<Shop>();
 const user: User = JSON.parse(localStorage.getItem("user") || "") as User; // 当前登录用户
 // const userList = ref<User[]>([]);
-const shopFormRef = ref<FormInstance>();
+const FormRef = ref<FormInstance>();
 const rules = reactive<FormRules<Shop>>({
   shop_name: [
     { required: true, message: "请输入店铺名称", trigger: "blur" },
@@ -171,10 +195,47 @@ const rules = reactive<FormRules<Shop>>({
     { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
   ],
   shop_image: [{ required: true, message: "请上传店铺图片", trigger: "blur" }],
-  status: [
-    { required: true, message: "请选择店铺负责人", trigger: "change" },
-  ],
+  status: [{ required: true, message: "请选择店铺负责人", trigger: "change" }],
 });
+
+// 显示图片工具
+const onMouseOver = (event: MouseEvent) => {
+  event.preventDefault();
+  const isOver = !(event.currentTarget as HTMLElement).contains(
+    event.relatedTarget as HTMLElement
+  );
+  if (isOver) {
+    editImage.value = true;
+  }
+};
+
+// 隐藏图片工具
+const onMouseOut = (event: MouseEvent) => {
+  event.preventDefault();
+  const isOut = !(event.currentTarget as HTMLElement).contains(
+    event.relatedTarget as HTMLElement
+  );
+  if (isOut) {
+    editImage.value = false;
+  }
+};
+
+// 显示图片预览
+const zoomIn = () => {
+  showImageViewer.value = true;
+};
+
+// 关闭图片预览
+const closeViewer = () => {
+  showImageViewer.value = false;
+};
+
+// 删除当前图片
+const delShopImage = () => {
+  shop.value!.shop_image = "";
+  shopImage.value = "";
+  editImage.value = false;
+};
 
 // 清空新增分类表单
 const clearData = () => {
@@ -198,9 +259,9 @@ function onCancel() {
 }
 
 // 对话框确认按钮
-async function onConfirm(shopFormRef: FormInstance | undefined) {
-  if (!shopFormRef) return;
-  await shopFormRef.validate((valid: any, fields: any) => {
+async function onConfirm(FormRef: FormInstance | undefined) {
+  if (!FormRef) return;
+  await FormRef.validate((valid: any, fields: any) => {
     if (valid) {
       console.log("表单验证正确！", shop.value);
       if (dialogType.value == "add") {
@@ -211,7 +272,7 @@ async function onConfirm(shopFormRef: FormInstance | undefined) {
           // 添加店铺
           addShop().then(() => {
             // 清除表单数据
-            shopFormRef.resetFields();
+            FormRef.resetFields();
             clearData();
             emit("update:Dialog", shop.value, false);
           });
@@ -225,7 +286,7 @@ async function onConfirm(shopFormRef: FormInstance | undefined) {
           uploadImage(file).then(() => {
             updateShop().then(() => {
               // 清除表单数据
-              shopFormRef.resetFields();
+              FormRef.resetFields();
               clearData();
               emit("update:Dialog", shop.value, false);
             });
@@ -233,7 +294,7 @@ async function onConfirm(shopFormRef: FormInstance | undefined) {
         } else {
           updateShop().then(() => {
             // 清除表单数据
-            shopFormRef.resetFields();
+            FormRef.resetFields();
             clearData();
             emit("update:Dialog", shop.value, false);
           });
@@ -367,4 +428,19 @@ watchEffect(() => {
   shop.value = props.shop;
 });
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  // transform: scale(2);
+  opacity: 0;
+}
+
+.fade-leave-to {
+  display: none; // 解决过渡动画抖动
+}
+</style>

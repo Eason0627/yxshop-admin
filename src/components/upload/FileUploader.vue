@@ -131,7 +131,8 @@ function handleError(error: any, file: any, fileList: any[]) {
   opacity: 0.6;
 }
 
-.el-upload--picture-card {
+.el-upload--picture-card,
+.el-upload-list__item {
   width: 96px !important;
   height: 96px !important;
   line-height: 96px !important;

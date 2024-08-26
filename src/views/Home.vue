@@ -78,7 +78,7 @@ const navigation: NavigationItem[] = [
         children: [],
       },
       {
-        url: "/order/delivery",
+        url: "/order/delivery/preview",
         name: "物流管理",
         left_icon: "&#xe705;",
         right_icon: "&#xe632;",

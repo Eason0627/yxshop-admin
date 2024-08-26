@@ -2,7 +2,7 @@
   <div class="shopInfo w-full h-full p-4 pb-24 overflow-y-auto">
     <div class="container w-full h-full p-8 mx-auto bg-white">
       <div class="shopImage">
-        
+          <el-image></el-image>
       </div>
     </div>
   </div>

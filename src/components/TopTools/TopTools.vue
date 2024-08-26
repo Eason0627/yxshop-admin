@@ -282,15 +282,21 @@ const selectShop = (item: Shop) => {
 };
 
 const getUserInfo = async () => {
-  await axios.get("/users/" + user.id).then((res) => {
-    if (res.data.code === 200) {
-      user = res.data.data;
-      // console.log(user)
-    } else {
-      PopUp.getInstance(Type.error, res.data.msg).show();
+  await axios
+    .get("/users/" + user.id)
+    .then((res) => {
+      if (res.data.code === 200) {
+        user = res.data.data;
+        // console.log(user)
+      } else {
+        PopUp.getInstance(Type.error, res.data.msg).show();
+        toLogin();
+      }
+    })
+    .catch((e) => {
+      PopUp.getInstance(Type.error, e.message).show();
       toLogin();
-    }
-  });
+    });
 };
 
 // 同级路由跳转

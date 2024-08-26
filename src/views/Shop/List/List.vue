@@ -155,7 +155,7 @@ let shop = ref<Shop>({
   registration_date: "",
   shop_description: "",
   shop_image: "",
-  status: ""
+  status: "",
 }); // 弹框数据对象
 const requestJSON = {};
 const tableHeader = [
