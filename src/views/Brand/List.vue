@@ -16,7 +16,7 @@
         <el-table
           class="mt-[-1]"
           ref="multipleTableRef"
-          :data="searchList.length !=0 ? searchList : brandList"
+          :data="searchList.length != 0 ? searchList : brandList"
           :empty-text="'暂无数据'"
           v-loading="loading"
           :height="tableBox?.scrollHeight"
@@ -217,7 +217,6 @@ const updateQuery = (formData?: Brand, flag?: boolean, type?: string) => {
   }
   if (flag !== undefined) {
     dialogVisible.value = flag;
-
   }
   if (type !== undefined) {
     dialogType.value = type;
@@ -352,10 +351,10 @@ function sortBrandStatus(list: Brand[]) {
 const getBrandData = async () => {
   loading.value = true;
   // 发起请求 --- 获取 品牌数据
-  const currentShop = JSON.parse(localStorage.getItem("currentShop")||"");
+  const currentShop = JSON.parse(localStorage.getItem("currentShop") || "");
   requestJSON.shop_id = currentShop.id;
   await axios
-    .get("/brands/getBrandPagination", {
+    .get("/brand/getBrandPagination", {
       params: {
         pageNum: page.pageNum,
         pageSize: page.pageSize,
@@ -363,25 +362,28 @@ const getBrandData = async () => {
       },
     })
     .then((res: AxiosResponse<any>) => {
-      // 根据店铺状态排序
-      console.log(res.data.records)
-      brandList.value = res.data.records;
-      brandList.value = sortBrandStatus(brandList.value);
+      if (res.data.list && res.data.list.length) {
+        // 根据店铺状态排序
+        brandList.value = res.data.list;
+        brandList.value = sortBrandStatus(brandList.value);
+      } else {
+        ElMessage.warning("暂无品牌数据!");
+      }
       page.total = parseInt(res.data.total);
-      loading.value = false;
     })
     .catch(() => {
       ElMessage.error("获取品牌数据失败！");
+    })
+    .finally(() => {
       loading.value = false;
     });
-
 };
 
 // 删除店铺
 const delBrands = async (list: any) => {
-  console.log(list)
+  console.log(list);
   await axios
-    .post(`/brands/delAll`,list)
+    .post(`/brand/delByList`, list)
     .then((res) => {
       if (res.data.code == 200) {
         ElMessage.success("删除品牌成功！");

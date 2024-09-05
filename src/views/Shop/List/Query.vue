@@ -3,7 +3,8 @@
     class="tools flex justify-between items-center p-4 mb-[-1px] border-[1px] border-[--info-border-color]"
   >
     <div class="search mt-2 flex flex-nowrap justify-start items-center">
-      <p class="text-left">筛选条件：</p>
+      <div class="text-left">筛选条件：</div>
+
       <div class="option">
         <el-input
           v-model="searchText"

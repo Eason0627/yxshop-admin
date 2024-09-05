@@ -67,8 +67,16 @@ const routes = [
       {
         path: "/order/delivery",
         name: "物流管理",
-        component: () => import("@/views/Order/Delivery/Delivery.vue"),
         children: [
+          {
+            path: "/order/delivery",
+            redirect: "/order/delivery/preview",
+          },
+          {
+            path: "/order/delivery/preview",
+            name: "物流预览",
+            component: () => import("@/views/Order/Delivery/Delivery.vue"),
+          },
           {
             path: "/order/delivery/list",
             name: "物流货单",

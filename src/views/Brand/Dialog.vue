@@ -61,7 +61,7 @@
         </el-form-item>
         <el-form-item label="绑定店铺" prop="shop_id" required>
           <el-select v-model="brand.shop_id" placeholder="选择店铺负责人">
-            <el-option :label="shop.name" :value="shop.id" />
+            <el-option :label="shop.shop_name" :value="shop.shop_id" />
           </el-select>
         </el-form-item>
         <el-form-item label="品牌描述" prop="description" required>
@@ -153,7 +153,7 @@ const clearData = () => {
     brand_name: "",
     description: "",
     logo_url: "",
-    status: Status.Active,
+    status: "",
   };
 };
 
@@ -245,7 +245,7 @@ async function addBrand() {
 
   // 新增品牌
   await axios
-    .post("/brands", brand.value)
+    .post("/brand", brand.value)
     .then((res: AxiosResponse) => {
       if (res.data.code == 200) {
         ElMessage.success("新增品牌成功！");
@@ -262,7 +262,7 @@ async function updateBrand() {
   // 更新店铺
   console.log(brand.value)
   await axios
-    .put(`/brands`, brand.value)
+    .put(`/brand`, brand.value)
     .then((res: AxiosResponse) => {
       if (res.data.code == 200) {
         ElMessage.success("更新品牌成功！");

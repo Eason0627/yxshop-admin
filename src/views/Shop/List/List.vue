@@ -147,17 +147,15 @@ const loading = ref(false); // 数据加载状态
 const dialogVisible = ref(false); // 弹框显隐
 const dialogType = ref(""); // 弹框类型
 let shop = ref<Shop>({
-shop_id: "",
-shop_name: "",
-owner_user_id: "",
-phone: "",
-location: "",
-registration_date: "",
-shop_description: "",
-shop_image: "",
-status: "",
-id: undefined,
-name: undefined
+  shop_id: "",
+  shop_name: "",
+  owner_user_id: "",
+  phone: "",
+  location: "",
+  registration_date: "",
+  shop_description: "",
+  shop_image: "",
+  status: "",
 }); // 弹框数据对象
 const requestJSON = {};
 const tableHeader = [

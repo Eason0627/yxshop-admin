@@ -70,7 +70,6 @@
         </div>
       </form>
 
-
       <transition name="fade">
         <form
           v-if="form_type === 'register' || form_type === 'forgetPsd'"
@@ -127,11 +126,10 @@
               class="w-8/12 px-2 py-1.5 border rounded"
             />
             <button
-             
               class="ml-auto px-2 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
               @click.prevent="sendVerificationEmail"
             >
-              {{buttonText}}
+              {{ buttonText }}
             </button>
           </div>
           <div class="mb-4">
@@ -173,6 +171,7 @@ import { useRouter } from "vue-router";
 // 导入记住密码状态仓库
 import { useRememberMeStore } from "@/store/index";
 import User from "@/model/User";
+import { ElNotification } from "element-plus";
 const store = useRememberMeStore();
 
 // 获取 router 对象
@@ -206,55 +205,66 @@ const switchForm = (form: "login" | "register" | "forgetPsd") => {
 };
 
 // 定义按钮的文本
-const buttonText = ref('发送验证码');
+const buttonText = ref("发送验证码");
 // 标记是否正在倒计时
 // const isCounting = ref(false);
 // 倒计时剩余秒数
 const countdown = ref(60);
 
 const handleLogin = async () => {
-  if (res) return PopUp.getInstance(Type.alert, "操作频繁！").show();
-  // 校验表单数据
-  if (loginForm.email === "") {
-    return PopUp.getInstance(Type.error, "邮箱不能为空").show();
-  }
-  if (loginForm.password === "") {
-    return PopUp.getInstance(Type.error, "密码不能为空").show();
-  }
-  // 如果已经登录，则提示
-  if (localStorage.getItem("token")) {
-    // 跳转首页
-    router.push("/home");
-    return PopUp.getInstance(Type.alert, "已经登录，请勿重复登录").show();
-  }
-  res = (await axios
-    .post("/login", {
-      username: loginForm.email,
-      email: loginForm.email,
-      password: loginForm.password,
-    })
-    .then((res: AxiosResponse) => {
-      if (res.data.code === 200) {
-        PopUp.getInstance(Type.success, "登录成功").show();
-        const user: User = res.data.data.user;
-        const token: string = res.data.data.token
-        // 存储token
-        localStorage.setItem("token", token);
-        // 存储当前登录用户信息
-        localStorage.setItem("user", JSON.stringify(user));
-        // 导入 router 跳转首页
-        router.push("/home");
-      } else {
-        PopUp.getInstance(Type.error, res.data.msg).show();
-      }
-    })) as AxiosResponse;
+  try {
+    if (res) return PopUp.getInstance(Type.alert, "操作频繁！").show();
+    // 校验表单数据
+    if (loginForm.email === "") {
+      return PopUp.getInstance(Type.error, "邮箱不能为空").show();
+    }
+    if (loginForm.password === "") {
+      return PopUp.getInstance(Type.error, "密码不能为空").show();
+    }
+    // 如果已经登录，则提示
+    if (localStorage.getItem("token")) {
+      // 跳转首页
+      router.push("/home");
+      return PopUp.getInstance(Type.alert, "已经登录，请勿重复登录").show();
+    }
+    res = (await axios
+      .post("/login", {
+        username: loginForm.email,
+        email: loginForm.email,
+        password: loginForm.password,
+      })
+      .then((res: AxiosResponse) => {
+        if (res.data.code === 200) {
+          const user: User = res.data.data.user;
+          const token: string = res.data.data.token;
+          // 存储token
+          localStorage.setItem("token", token);
+          // 存储当前登录用户信息
+          localStorage.setItem("user", JSON.stringify(user));
+          // 导入 router 跳转首页
+          router.push("/home");
+          // PopUp.getInstance(Type.success, "登录成功").show();
+          setTimeout(() => {
+            ElNotification({
+              title: "登录成功",
+              message: "欢迎回来！" + user.nick_name,
+              type: "success",
+            });
+          }, 500);
+        } else {
+          PopUp.getInstance(Type.error, res.data.msg).show();
+        }
+      })) as AxiosResponse;
 
-  // 记住密码勾选后的逻辑
-  if (rememberMe.value) {
-    // 存储用户名
-    localStorage.setItem("email", loginForm.email);
-    // 存储密码
-    localStorage.setItem("password", loginForm.password);
+    // 记住密码勾选后的逻辑
+    if (rememberMe.value) {
+      // 存储用户名
+      localStorage.setItem("email", loginForm.email);
+      // 存储密码
+      localStorage.setItem("password", loginForm.password);
+    }
+  } catch (e: any) {
+    PopUp.getInstance(Type.error, e.message).show();
   }
 };
 
@@ -353,8 +363,8 @@ const sendVerificationEmail = async () => {
       }
     })) as AxiosResponse;
 
-    //开始倒计时
-    // startCountdown();
+  //开始倒计时
+  // startCountdown();
 };
 
 // 倒计时方法
@@ -368,7 +378,7 @@ function startCountdown() {
       // 倒计时结束
       clearInterval(intervalId);
       isCounting.value = true;
-      buttonText.value = '发送验证码';
+      buttonText.value = "发送验证码";
     }
   }, 1000);
 }
@@ -381,8 +391,6 @@ onMounted(() => {
     rememberMe.value = true;
   }
 });
-
-
 
 // 监听 rememberMe 数据变化
 watch(

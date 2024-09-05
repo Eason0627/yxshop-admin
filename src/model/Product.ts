@@ -1,5 +1,4 @@
 export default interface Product {
-product_status: any;
   product_id?: number; // 商品ID
   product_name?: string; // 商品名称
   description?: string; // 商品描述
@@ -36,6 +35,7 @@ product_status: any;
   safety_stock?: number; // 安全库存量
   last_restock_date?: Date; // 上次补货日期
   restock_threshold?: number; // 补货阈值
+  product_status: any;
 
   create_time?: string | Array<number>; // 创建时间，自动填充
   updateTime?: string | Array<number>; // 更新时间，自动更新

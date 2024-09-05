@@ -62,93 +62,87 @@
             {{ user.nick_name }}
           </div>
         </div>
-        <Transition name="fade">
-          <ul
-            class="userMenu absolute top-[110%] w-full p-1 text-left text-sm border-[1px] rounded-md shadow-lg bg-white z-10"
-            @mouseenter="onMenuMouseenter(true, $event)"
-            @mouseleave="onMenuMouseLeave(false, $event)"
-            v-show="menuShow"
+        <ul
+          class="userMenu absolute top-[110%] w-full p-1 text-left text-sm border-[1px] rounded-md shadow-lg bg-white z-10"
+          @mouseenter="onMenuMouseenter(true, $event)"
+          @mouseleave="onMenuMouseLeave(false, $event)"
+          v-show="menuShow"
+        >
+          <div
+            class="currentShop flex items-center w-full px-4 py-1 rounded-md bg-[--theme-color] text-white transition-all duration-300 z-10"
           >
-            <div
-              class="currentShop flex items-center w-full px-4 py-1 rounded-md bg-[--theme-color] text-white transition-all duration-300 z-10"
-            >
-              <span class="iconfont">&#xe678;</span>
-              <span class="ml-2">{{ CurrentShop?.shop_name }}</span>
-            </div>
-            <div
-              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
-            ></div>
-            <div
-              class="document relative flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
-              @mouseover="onShopMouseOver"
-              @mouseout="onShopMouseOut($event)"
-            >
-              <el-icon><Switch /></el-icon>
-              <span class="ml-2 truncate">切换店铺</span>
-              <span
-                class="inline-block w-4 h-4 ml-2 rounded-full text-white text-center text-xs bg-cyan-500"
-                >{{ shopList.length }}
-              </span>
-              <Transition name="fade">
-                <ul
-                  class="shopMenu absolute top-0 right-[105%] flex flex-col w-full p-1 text-left text-sm border-[1px] rounded-md bg-white shadow-lg transition-all duration-300 z-10"
-                  @mouseenter="onShopMouseenter(true, $event)"
-                  @mouseleave="onShopMouseLeave(false, $event)"
-                  v-show="shopShow"
+            <span class="iconfont">&#xe678;</span>
+            <span class="ml-2">{{ CurrentShop?.shop_name }}</span>
+          </div>
+          <div class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"></div>
+          <div
+            class="document relative flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
+            @mouseover="onShopMouseOver"
+            @mouseout="onShopMouseOut($event)"
+          >
+            <el-icon><Switch /></el-icon>
+            <span class="ml-2 truncate">切换店铺</span>
+            <span
+              class="inline-block w-4 h-4 ml-2 rounded-full text-white text-center text-xs bg-cyan-500"
+              >{{ shopList ? shopList.length : 0 }}
+            </span>
+            <Transition name="fade">
+              <ul
+                class="shopMenu absolute top-0 right-[105%] flex flex-col w-full p-1 text-left text-sm border-[1px] rounded-md bg-white shadow-lg transition-all duration-300 z-10"
+                @mouseenter="onShopMouseenter(true, $event)"
+                @mouseleave="onShopMouseLeave(false, $event)"
+                v-show="shopShow"
+              >
+                <li
+                  class="flex items-center px-4 py-1 hover:bg-[--info-bg-hover-color] cursor-pointer rounded"
+                  :style="{
+                    backgroundColor:
+                      item.shop_id === CurrentShop?.shop_id
+                        ? 'var(--info-bg-color)'
+                        : '',
+                    color:
+                      item.shop_id === CurrentShop?.shop_id
+                        ? 'var(--success-color)'
+                        : '',
+                    cursor:
+                      item.shop_id === CurrentShop?.shop_id
+                        ? 'not-allowed'
+                        : '',
+                  }"
+                  v-for="item in shopList"
+                  @click="selectShop(item)"
                 >
-                  <li
-                    class="flex items-center px-4 py-1 hover:bg-[--info-bg-hover-color] cursor-pointer rounded"
+                  <span
+                    class="circle inline-block w-2 h-2 mr-2 rounded-full text-white text-center text-xs"
                     :style="{
                       backgroundColor:
-                        item.shop_id === CurrentShop?.shop_id
-                          ? 'var(--info-bg-color)'
-                          : '',
-                      color:
-                        item.shop_id === CurrentShop?.shop_id
+                        item.status === 'Active'
                           ? 'var(--success-color)'
-                          : '',
-                      cursor:
-                        item.shop_id === CurrentShop?.shop_id
-                          ? 'not-allowed'
-                          : '',
+                          : item.status === 'Inactive'
+                          ? 'var(--warning-color)'
+                          : 'var(--error-color)',
                     }"
-                    v-for="item in shopList"
-                    @click="selectShop(item)"
-                  >
-                    <span
-                      class="circle inline-block w-2 h-2 mr-2 rounded-full text-white text-center text-xs"
-                      :style="{
-                        backgroundColor:
-                          item.status === 'Active'
-                            ? 'var(--success-color)'
-                            : item.status === 'Inactive'
-                            ? 'var(--warning-color)'
-                            : 'var(--error-color)',
-                      }"
-                    ></span>
-                    <span class="name truncate">{{ item.shop_name }}</span>
-                  </li>
-                </ul>
-              </Transition>
-            </div>
-            <div
-              class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"
-            ></div>
-            <div
-              class="lock flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
-            >
-              <el-icon><Lock /></el-icon>
-              <span class="ml-2">锁定屏幕</span>
-            </div>
-            <div
-              class="logout flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
-              @click="toLogin()"
-            >
-              <el-icon><SwitchButton /></el-icon>
-              <span class="ml-2">退出系统</span>
-            </div>
-          </ul>
-        </Transition>
+                  ></span>
+                  <span class="name truncate">{{ item.shop_name }}</span>
+                </li>
+              </ul>
+            </Transition>
+          </div>
+          <div class="divider w-full h-[1px] my-1 bg-gray-300 opacity-70"></div>
+          <div
+            class="lock flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
+          >
+            <el-icon><Lock /></el-icon>
+            <span class="ml-2">锁定屏幕</span>
+          </div>
+          <div
+            class="logout flex items-center w-full px-4 py-1 rounded-md hover:bg-[--info-bg-hover-color] transition-all duration-300 z-10"
+            @click="toLogin()"
+          >
+            <el-icon><SwitchButton /></el-icon>
+            <span class="ml-2">退出系统</span>
+          </div>
+        </ul>
       </div>
       <!-- 系统设置 -->
       <div class="setting">
@@ -160,7 +154,7 @@
 <script setup lang="ts">
 /// 导入事件总线
 import bus from "@/utils/event-bus.ts";
-import { ref, onBeforeMount, onMounted, inject } from "vue";
+import { ref, onBeforeMount, inject } from "vue";
 import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
@@ -232,21 +226,7 @@ const getShops = async () => {
   await axios.get(`/shops/getShopByUserId/${user.id}`).then((res) => {
     // 存储到 pinia
     ShopStore.setShopList(res.data.data);
-    shopList.value = res.data.data.map((item: any) => ({
-      shop_id: item.shop_id,
-      shop_name: item.shop_name,
-      status: item.status,
-    }));
-    
-    // console.log(localStorage.getItem("currentShop"))
-    if(!localStorage.getItem("currentShop")){
-      //设置当前店铺
-      ShopStore.setCurrentShop({
-        id: shopList.value[0].shop_id,
-        name: shopList.value[0].shop_name,
-        status: shopList.value[0].status,
-      });
-    }
+    shopList.value = res.data.data;
   });
 };
 const selectShop = (item: Shop) => {
@@ -262,11 +242,7 @@ const selectShop = (item: Shop) => {
     type: "warning",
   })
     .then(() => {
-      ShopStore.setCurrentShop({
-        id: item.shop_id,
-        name: item.shop_name,
-        status: item.status,
-      });
+      ShopStore.setCurrentShop(item);
       CurrentShop.value = item;
       ElNotification({
         title: "切换店铺成功",
@@ -275,26 +251,23 @@ const selectShop = (item: Shop) => {
       });
     })
     .catch(() => {});
-  // console.log(id,name)
-  // ShopStore.setCurrentShop({ id: id, name: name });
-  // CurrentShopName = name;
-  // ElNotification({
-  //   title: "切换店铺成功",
-  //   message: "切换为" + name + "店铺",
-  //   type: "success",
-  // });
 };
 
 const getUserInfo = async () => {
-  await axios.get("/users/" + user.id).then((res) => {
-    if (res.data.code === 200) {
-      user = res.data.data;
-      // console.log(user)
-    } else {
-      PopUp.getInstance(Type.error, res.data.msg).show();
+  await axios
+    .get("/users/" + user.id)
+    .then((res) => {
+      if (res.data.code === 200) {
+        user = res.data.data;
+      } else {
+        PopUp.getInstance(Type.error, res.data.msg).show();
+        toLogin();
+      }
+    })
+    .catch((e) => {
+      PopUp.getInstance(Type.error, e.message).show();
       toLogin();
-    }
-  });
+    });
 };
 
 // 同级路由跳转
@@ -378,9 +351,20 @@ onBeforeMount(() => {
   }
 });
 
-onMounted(async () => {
-  await getUserInfo();
-  getShops();
+onBeforeMount(async () => {
+  await getUserInfo().then(async () => {
+    await getShops().then(() => {
+      if (localStorage.getItem("currentShop")) {
+        CurrentShop.value = JSON.parse(
+          localStorage.getItem("currentShop") || "{}"
+        );
+        ShopStore.setCurrentShop(CurrentShop.value);
+      } else {
+        CurrentShop.value = shopList.value[0];
+        ShopStore.setCurrentShop(shopList.value[0]);
+      }
+    });
+  });
 });
 </script>
 <style lang="scss" scoped>
@@ -397,8 +381,7 @@ onMounted(async () => {
   align-items: center;
   width: 100%;
   height: 3.125rem;
-  border-left: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e0e0e0;
   background: #fff;
   box-sizing: border-box;
   .leftBox {
