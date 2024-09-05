@@ -114,7 +114,7 @@ const routes = [
       {
         path: "/promotion/list",
         name: "营销活动",
-        component: () => import("@/views/Promotion/List.vue"),
+        component: () => import("@/views/Promotion/List/List.vue"),
       },
       {
         path: "/promotion/category",

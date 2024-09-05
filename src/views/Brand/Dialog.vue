@@ -98,7 +98,6 @@ import axios from "@/utils/axios";
 import { AxiosResponse } from "axios";
 import Brand, { Status } from "@/model/Brand";
 import Shop from "@/model/Shop";
-import {userShopStore} from "@/store/index";
 
 // 传参数据类型
 interface Props {

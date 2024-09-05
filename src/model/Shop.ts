@@ -1,6 +1,8 @@
 import User from "./User";
 
 export default interface Shop {
+id: unknown;
+name: unknown;
   shop_id: number | string; // 店铺ID
   shop_name: string; // 店铺名称
   owner_user_id: string; // 店铺负责人的用户ID

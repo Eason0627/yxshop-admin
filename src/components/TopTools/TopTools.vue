@@ -227,7 +227,7 @@ const getRouteInfo = () => {
     sameRoute.value = children;
   }
 };
-
+// const currentShopInStorage = useLocalStorage('currentShop', null);
 const getShops = async () => {
   await axios.get(`/shops/getShopByUserId/${user.id}`).then((res) => {
     // 存储到 pinia
@@ -237,12 +237,16 @@ const getShops = async () => {
       shop_name: item.shop_name,
       status: item.status,
     }));
-    ShopStore.setCurrentShop({
-      id: shopList.value[0].shop_id,
-      name: shopList.value[0].shop_name,
-      status: shopList.value[0].status,
-    });
-    CurrentShop.value = shopList.value[0];
+    
+    // console.log(localStorage.getItem("currentShop"))
+    if(!localStorage.getItem("currentShop")){
+      //设置当前店铺
+      ShopStore.setCurrentShop({
+        id: shopList.value[0].shop_id,
+        name: shopList.value[0].shop_name,
+        status: shopList.value[0].status,
+      });
+    }
   });
 };
 const selectShop = (item: Shop) => {
