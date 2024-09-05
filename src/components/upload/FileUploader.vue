@@ -1,26 +1,34 @@
 <template>
-  <el-upload
-    ref="uploadRef"
-    :action="uploadAction"
-    :multiple="multiple"
-    :headers="headers"
-    :limit="limit"
-    :file-list="fileList"
-    :auto-upload="auto"
-    :on-change="handleChange"
-    :on-remove="handleRemove"
-    :before-upload="beforeUpload"
-    :on-exceed="handleExceed"
-    :on-success="handleSuccess"
-    :on-error="handleError"
-    list-type="picture-card"
-    :class="{ 'is-disabled': disabled }"
-  >
-    <el-icon>
-      <UploadFilled />
-    </el-icon>
-    <span @click="submitUpload"></span>
-  </el-upload>
+  <div class="fileUpload">
+    <el-upload
+      ref="uploadRef"
+      :action="uploadAction"
+      :multiple="multiple"
+      :headers="headers"
+      :limit="limit"
+      :file-list="fileList"
+      :auto-upload="auto"
+      :on-change="handleChange"
+      :on-remove="handleRemove"
+      :before-upload="beforeUpload"
+      :on-exceed="handleExceed"
+      :on-success="handleSuccess"
+      :on-error="handleError"
+      :on-preview="handlePreview"
+      list-type="picture-card"
+      :class="{ 'is-disabled': disabled }"
+    >
+      <el-icon>
+        <UploadFilled />
+      </el-icon>
+      <span @click="submitUpload"></span>
+    </el-upload>
+    <el-image-viewer
+      v-if="showImageViewer"
+      :url-list="previewerList"
+      @close="closeViewer"
+    ></el-image-viewer>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -35,6 +43,7 @@ interface Props {
   limit?: number;
   auto?: boolean;
   // fileList?: any[];
+  propsStr?: string;
   beforeUpload?: (file: any) => boolean;
   onSuccess?: (response: any, file: any, fileList: any[]) => void;
   onError?: (error: any, file: any, fileList: any[]) => void;
@@ -42,10 +51,16 @@ interface Props {
 
 // 自定义事件
 interface Emits {
-  (e: "change", file: any, fileList: any[]): void;
-  (e: "update:modelValue", file: any, fileList: any[]): void;
-  (e: "onSuccess", response: any, file: any, fileList: any[]): void;
-  (e: "onError", error: any, file: any, fileList: any[]): void;
+  (e: "change", file: any, fileList: any[], props?: string): void;
+  (e: "update:modelValue", file: any, fileList: any[], props?: string): void;
+  (
+    e: "onSuccess",
+    response: any,
+    file: any,
+    fileList: any[],
+    props?: string
+  ): void;
+  (e: "onError", error: any, file: any, fileList: any[], props?: string): void;
 }
 
 // 参数默认值
@@ -56,6 +71,7 @@ const props = withDefaults(defineProps<Props>(), {
   limit: 5,
   auto: false,
   // fileList: any[],
+  propsStr: "",
   beforeUpload: () => true,
   onSuccess: () => {},
   onError: () => {},
@@ -69,7 +85,10 @@ const fileList = ref<any[]>([]);
 const uploadAction = ref<string>(props.action);
 // Upload Dom对象
 const uploadRef = ref<any>(null);
+const propsStr = ref<string>(props.propsStr);
 
+const showImageViewer = ref(false); // 图片预览组件显隐
+const previewerList = ref<string[]>([]); // 图片预览列表
 // 携带请求头
 const headers = ref({
   Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -78,6 +97,7 @@ const headers = ref({
 // 监听 action 变化
 watchEffect(() => {
   uploadAction.value = props.action;
+  propsStr.value = props.propsStr;
 });
 
 // 提交上传
@@ -91,12 +111,22 @@ defineExpose({
   submitUpload,
 });
 function handleChange(file: any, fileList: any) {
-  emit("change", file, fileList);
+  const list: string[] = [];
+  fileList.forEach((file: any) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file.raw);
+    reader.onloadend = () => {
+      const base64Url = reader.result as string;
+      list.push(base64Url);
+    };
+  });
+  previewerList.value = list;
+  emit("change", file, fileList, propsStr.value);
 }
 
 function handleRemove(file: any, fileList: any) {
   fileList.value = fileList.filter((f: any) => f.uid !== file.uid);
-  emit("update:modelValue", file, fileList.value);
+  emit("update:modelValue", file, fileList.value, propsStr.value);
 }
 
 function handleExceed(files: any, fileList: any) {
@@ -116,13 +146,22 @@ function beforeUpload(file: any): boolean {
 
 function handleSuccess(response: any, file: any, fileList: any[]) {
   // 调用父组件的 onSuccess 方法
-  emit("onSuccess", response, file, fileList);
+  emit("onSuccess", response, file, fileList, propsStr.value);
 }
 
 function handleError(error: any, file: any, fileList: any[]) {
   // 调用父组件的 onError 方法
-  emit("onError", error, file, fileList);
+  emit("onError", error, file, fileList, propsStr.value);
 }
+
+function handlePreview() {
+  showImageViewer.value = true;
+}
+
+// 关闭图片预览
+const closeViewer = () => {
+  showImageViewer.value = false;
+};
 </script>
 
 <style>

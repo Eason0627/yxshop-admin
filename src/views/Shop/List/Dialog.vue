@@ -192,7 +192,7 @@ const rules = reactive<FormRules<Shop>>({
   ],
   shop_description: [
     { required: true, message: "请输入店铺描述", trigger: "blur" },
-    { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
+    { min: 2, max: 100, message: "长度在 2 到 20 个字符", trigger: "blur" },
   ],
   shop_image: [{ required: true, message: "请上传店铺图片", trigger: "blur" }],
   status: [{ required: true, message: "请选择店铺负责人", trigger: "change" }],

@@ -5,14 +5,16 @@
       <TopTools></TopTools>
       <HistoryRouter></HistoryRouter>
       <router-view v-slot="{ Component }">
-        <transition>
-          <component :is="Component" />
+        <transition name="fade-slide">
+          <component v-if="isRouterAlive" :is="Component" />
         </transition>
       </router-view>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import { provide, ref, nextTick } from "vue";
+
 import { NavigationItem } from "@/components/Aside/Aside.interface";
 import Aside from "@/components/Aside/Aside.vue";
 import TopTools from "@/components/TopTools/TopTools.vue";
@@ -183,12 +185,12 @@ const navigation: NavigationItem[] = [
         right_icon: "&#xe632;",
         children: [],
       },
-      {
-        url: "/shop/custom",
-        name: "店铺装修",
-        right_icon: "&#xe632;",
-        children: [],
-      },
+      // {
+      //   url: "/shop/custom",
+      //   name: "店铺装修",
+      //   right_icon: "&#xe632;",
+      //   children: [],
+      // },
     ],
   },
   {
@@ -266,5 +268,26 @@ const navigation: NavigationItem[] = [
     ],
   },
 ];
+
+const isRouterAlive = ref(true);
+// 页面局部刷新组件
+const reload = async () => {
+  isRouterAlive.value = false;
+  await nextTick(() => {
+    isRouterAlive.value = true;
+  });
+};
+provide("reload", reload);
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  transform: translate(30px);
+  opacity: 0;
+}
+</style>

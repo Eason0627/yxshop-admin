@@ -21,20 +21,20 @@
         <el-form-item
           class="flex justify-center items-center"
           label="品牌图片"
-          prop="logoUrl"
+          prop="logo_url"
           required
         >
           <div
             class="image relative flex justify-center items-center w-24 h-24 rounded-md overflow-hidden"
-            v-if="brand.logoUrl"
+            v-if="brand.logo_url"
           >
             <el-image
-              :src="brand.logoUrl"
+              :src="brand.logo_url"
               :zoom-rate="1.2"
               :max-scale="7"
               :min-scale="0.2"
               preview-teleported
-              :preview-src-list="[brand.logoUrl]"
+              :preview-src-list="[brand.logo_url]"
               fit="cover"
               style="width: 100%; height: 100%"
             />
@@ -51,16 +51,16 @@
             />
           </div>
         </el-form-item>
-        <el-form-item label="品牌名称" prop="brandName" required>
+        <el-form-item label="品牌名称" prop="brand_name" required>
           <el-input
-            v-model="brand.brandName"
+            v-model="brand.brand_name"
             placeholder="请输入品牌名称"
             clearable
             required
           ></el-input>
         </el-form-item>
-        <el-form-item label="绑定店铺" prop="shopId" required>
-          <el-select v-model="brand.shopId" placeholder="选择店铺负责人">
+        <el-form-item label="绑定店铺" prop="shop_id" required>
+          <el-select v-model="brand.shop_id" placeholder="选择店铺负责人">
             <el-option :label="shop.shop_name" :value="shop.shop_id" />
           </el-select>
         </el-form-item>
@@ -74,10 +74,10 @@
           ></el-input>
         </el-form-item>
         <el-form-item label="品牌状态">
-          <el-select v-model="brand.status" placeholder="设置店铺状态">
-            <el-option label="已签约" :value="Status.Active" />
-            <el-option label="待审核" :value="Status.Inactive" />
-            <el-option label="已过期" :value="Status.Invalid" />
+          <el-select v-model="brand.status" placeholder="设置品牌状态">
+            <el-option label="已签约" value="Active" />
+            <el-option label="待审核" value="Inactive" />
+            <el-option label="已过期" value="Invalid" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -98,6 +98,7 @@ import axios from "@/utils/axios";
 import { AxiosResponse } from "axios";
 import Brand, { Status } from "@/model/Brand";
 import Shop from "@/model/Shop";
+import {userShopStore} from "@/store/index";
 
 // 传参数据类型
 interface Props {
@@ -110,7 +111,7 @@ interface Props {
 
 // 自定义事件
 interface Emits {
-  (e: "getData"): void;
+  (e: "getBrandData"): void;
   (e: "update:Dialog", formData: Brand | undefined, flag?: boolean): void;
 }
 
@@ -125,18 +126,20 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-const shop: Shop = JSON.parse(localStorage.getItem("shop") || "") as Shop; // 当前登录用户
+const shop: Shop = JSON.parse(localStorage.getItem("currentShop") || "") as Shop; // 当前登录用户
+// console.log("shop", shop);
+
 const dialogVisible = ref(false); // 弹框显隐
 const dialogType = ref(""); // 弹框类型
 const brandImage = ref("");
 const brand = ref<Brand>();
 const FormRef = ref<FormInstance>();
 const rules = reactive<FormRules<Brand>>({
-  brandName: [
+  brand_name: [
     { required: true, message: "请输入品牌名称", trigger: "blur" },
     { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
   ],
-  shopId: [{ required: true, message: "请选择店铺负责人", trigger: "change" }],
+  shop_id: [{ required: true, message: "请选择店铺负责人", trigger: "change" }],
   description: [
     { required: true, message: "请输入店铺描述", trigger: "blur" },
     { min: 2, max: 20, message: "长度在 2 到 20 个字符", trigger: "blur" },
@@ -146,12 +149,12 @@ const rules = reactive<FormRules<Brand>>({
 // 清空新增分类表单
 const clearData = () => {
   brand.value = {
-    brandId: "",
-    shopId: "",
-    brandName: "",
+    brand_id: "",
+    shop_id: "",
+    brand_name: "",
     description: "",
-    logoUrl: "",
-    status: Status.Active,
+    logo_url: "",
+    status: "",
   };
 };
 
@@ -164,6 +167,15 @@ function onCancel() {
 // 对话框确认按钮
 async function onConfirm(FormRef: FormInstance | undefined) {
   if (!FormRef) return;
+  // brand.status
+  // switch (brand.status) {
+  //   case value:
+      
+  //     break;
+  
+  //   default:
+  //     break;
+  // }
   await FormRef.validate((valid: any, fields: any) => {
     if (valid) {
       console.log("表单验证正确！", brand.value);
@@ -182,7 +194,7 @@ async function onConfirm(FormRef: FormInstance | undefined) {
         });
       } else if (dialogType.value == "edit") {
         // 判断图片是否更改了 (是否含有http前缀)
-        if (brand.value?.logoUrl?.indexOf("http") == -1) {
+        if (brand.value?.logo_url?.indexOf("http") == -1) {
           // 将原base64图片转为 file对象
           const file = base64ToFile(brandImage.value, "brand.jpg");
           // 获取在线链接
@@ -224,7 +236,7 @@ async function uploadImage(file: File) {
       },
     })
     .then((res: AxiosResponse) => {
-      brand.value!.logoUrl = res.data.data;
+      brand.value!.logo_url = res.data.data;
     });
 }
 
@@ -232,13 +244,13 @@ async function uploadImage(file: File) {
 async function addBrand() {
   console.log(brand.value?.status);
 
-  // 新增店铺
+  // 新增品牌
   await axios
-    .post("/brands", brand.value)
+    .post("/brand", brand.value)
     .then((res: AxiosResponse) => {
       if (res.data.code == 200) {
         ElMessage.success("新增品牌成功！");
-        emit("getData");
+        emit("getBrandData");
       }
     })
     .catch(() => {
@@ -249,12 +261,13 @@ async function addBrand() {
 // 请求接口更新店铺信息
 async function updateBrand() {
   // 更新店铺
+  console.log(brand.value)
   await axios
-    .put(`/brands/${brand.value?.brandId}`, brand.value)
+    .put(`/brand`, brand.value)
     .then((res: AxiosResponse) => {
       if (res.data.code == 200) {
         ElMessage.success("更新品牌成功！");
-        emit("getData");
+        emit("getBrandData");
       }
     })
     .catch(() => {
@@ -284,7 +297,7 @@ function success(response: any, file: any, fileList: any[]) {
   console.log("上传成功", response, file, fileList);
   // 处理上传成功后的逻辑
   // 假设后端返回的 URL 存储在 response.data.url
-  brand.value!.logoUrl = response.data;
+  brand.value!.logo_url = response.data;
 }
 function error(error: any, file: any, fileList: any[]) {
   console.error("上传失败", error, file, fileList);
@@ -297,7 +310,7 @@ function uploadChange(file: any, fileList: any[]) {
   reader.onloadend = () => {
     const base64Url = reader.result as string;
     brandImage.value = base64Url;
-    brand.value!.logoUrl = base64Url;
+    brand.value!.logo_url = base64Url;
   };
 }
 

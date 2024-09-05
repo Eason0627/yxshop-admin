@@ -41,7 +41,9 @@
             />
           </div>
           <div class="option">
-            <el-button type="primary" class="ml-2">搜索</el-button>
+            <el-button type="primary" class="ml-2" @click="handleGetProductList"
+              >搜索</el-button
+            >
             <el-button type="danger" plain @click="resetSearch">清除</el-button>
           </div>
         </div>
@@ -95,7 +97,7 @@
             width="120"
           />
 
-          <el-table-column property="brand_id" label="品牌" width="120" />
+          <el-table-column property="brand_name" label="品牌" width="120" />
 
           <el-table-column property="price" label="价格/元" width="120" />
 
@@ -118,7 +120,7 @@
 
           <el-table-column label="分类" width="120" sortable>
             <template #default="{ row }">
-              {{ getCategoryName(row.category_id) }}
+              {{ row.category_name }}
             </template>
           </el-table-column>
 
@@ -180,7 +182,7 @@
       >
         <el-pagination
           background
-          layout="total, prev, pager, next, jumper "
+          layout="sizes, total, prev, pager, next, jumper "
           @size-change="handleSizeChange"
           v-model:current-page="page.currentPage"
           :page-sizes="[10, 20, 30, 50]"
@@ -194,16 +196,12 @@
     </div>
 
     <!-- 修改弹窗 -->
-    <UpdateDialog
-      v-model:dialogFormVisible="dialogVisible"
-      v-model:form="form"
-      v-model:categoryList="categoryList"
-    ></UpdateDialog>
+    <UpdateDialog :form :dialogVisible @update:Visible="updateVisible"> </UpdateDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, Ref, markRaw, computed } from "vue";
+import { ref, reactive, inject, onMounted, Ref, markRaw } from "vue";
 import { Axios, AxiosResponse } from "axios";
 
 import UpdateDialog from "./UpdateDialog.vue";
@@ -219,9 +217,9 @@ const axios: Axios = inject("axios") as Axios;
 const dialogVisible = ref(false);
 
 //删除弹窗控制
-const deletedialogVisible = ref(false);
-const indexdata: any = ref("");
-const rowdata: any = ref("");
+const deleteDialogVisible = ref(false);
+const indexData: any = ref("");
+const rowData: any = ref("");
 
 //定义修改表单对象
 let form = reactive({
@@ -230,7 +228,9 @@ let form = reactive({
     product_name: "",
     description: "这款星辰X5 Pro 智能手机是一款旗舰级设备，旨在",
     brand_id: 2,
+    brand_name: "华为",
     shop_id: 1813922145265389568,
+    shop_name: "12",
     origin: "中国",
     material: "556",
     size: "6.7",
@@ -241,6 +241,7 @@ let form = reactive({
     production_date: "2024-08-14",
     expiration_date: "2024-08-16",
     category_id: 0,
+    category_name: "手机",
     main_image: "",
     additional_images: [],
     details_images: [],
@@ -257,6 +258,7 @@ let form = reactive({
   },
   inventory: {
     warehouse_id: 1816111338636840960,
+    warehouse_name: "1",
     stock_quantity: 45000,
     safety_stock: 5000,
     last_restock_date: "", //上次捕获日期
@@ -266,10 +268,10 @@ let form = reactive({
 //修改弹窗以及获取商品信息
 function editRow(index: any, row: any) {
   dialogVisible.value = !dialogVisible.value;
-  indexdata.value = index;
-  rowdata.value = row;
+  indexData.value = index;
+  rowData.value = row;
   axios
-    .get(`/products/${rowdata.value.product_id}`)
+    .get(`/products/${rowData.value.product_id}`)
     .then((response: AxiosResponse) => {
       // console.log(typeof response.data.data.product_id)
       const Data = response.data.data;
@@ -278,7 +280,9 @@ function editRow(index: any, row: any) {
       form.product_info.product_name = Data.product_name;
       form.product_info.description = Data.description;
       form.product_info.brand_id = Data.brand_id;
+      form.product_info.brand_name = Data.brand_name;
       form.product_info.shop_id = Data.shop_id;
+      form.product_info.shop_name = Data.shop_name;
       form.product_info.origin = Data.origin;
       form.product_info.material = Data.material;
       form.product_info.size = Data.size;
@@ -289,6 +293,7 @@ function editRow(index: any, row: any) {
       form.product_info.production_date = Data.production_date;
       form.product_info.expiration_date = Data.expiration_date;
       form.product_info.category_id = Data.category_id;
+      form.product_info.category_name = Data.category_name;
       form.product_info.main_image = Data.main_image;
       form.product_info.additional_images = JSON.parse(
         Data.additional_images || ""
@@ -305,12 +310,10 @@ function editRow(index: any, row: any) {
       form.product_sales.sales_status = Data.sales_status;
 
       form.inventory.warehouse_id = Data.warehouse_id;
-      // form.inventory.stock_quantity = Data.stock_quantity;
+      form.inventory.warehouse_name = Data.warehouse_name;
       form.inventory.safety_stock = Data.safety_stock;
       form.inventory.last_restock_date = Data.last_restock_date;
       form.inventory.restock_threshold = Data.restock_threshold;
-
-      // console.log(form)
     });
 }
 const searchText = ref("");
@@ -350,26 +353,25 @@ const searchList = [
 
 // const Search = ref("");
 
-//定义分类类型
-interface Category {
-  category_id: number;
-  category_name: string;
-}
+// //定义分类类型
+// interface Category {
+//   category_id: number;
+//   category_name: string;
+// }
 // 正确定义并初始化brandList
-const brandList = ref<{ id: any; label: any }[]>([]);
-//定义品牌类型
-interface Brand {
-  brand_id: number;
-  brand_name: string;
-}
+// const brandList = ref<{ id: any; label: any }[]>([]);
+// //定义品牌类型
+// interface Brand {
+//   brand_id: number;
+//   brand_name: string;
+// }
 
 // 示例数据
 let tableData: Ref<Product[]> = ref([] as Product[]);
 
-const categoryList: Ref<{
-  [x: string]: any;
-  [key: number]: any;
-}> = ref({});
+// const categoryList:Ref<{
+// [x: string]: any; [key: number]: any
+// }> = ref({});
 
 const multipleTableRef = ref<InstanceType<typeof ElTable>>();
 const selectData = ref<any>([]);
@@ -384,7 +386,7 @@ interface ProductType {
 }
 // const product = ref<ProductType>({})
 let product: ProductType = {}; // 明确声明 product 为 ProductType 类型
-
+// const requestJSON = {};
 const page = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -402,22 +404,24 @@ function resetSearch() {
 // 获取当前店铺��数据
 const ShopInfo = userShopStore();
 
-//获取表格数据
-const handlGetproductList = async () => {
-  const user = JSON.parse(localStorage.getItem("user") || "");
-  // console.log(user);
-  if (user.role == "Admin") {
-    // console.log("admin");
+const updateVisible = (flag: boolean) => {
+  dialogVisible.value = flag;
+};
 
+//获取表格数据
+const handleGetProductList = async () => {
+  const user = JSON.parse(localStorage.getItem("user") || "");
+  if (user.role == "Admin") {
     Object.keys(product).forEach((key) => delete product[key]); //清空对象
     if (searchType.value != "" && searchText.value != "") {
       product[searchType.value] = searchText.value; //赋值对象
     }
     await axios
-      .post("/products/getall", product, {
+      .get("/products/getProductPagination", {
         params: {
           pageNum: page.pageNum,
           pageSize: page.pageSize,
+          product: JSON.stringify(product),
         },
       })
       .then((res: AxiosResponse) => {
@@ -429,18 +433,18 @@ const handlGetproductList = async () => {
           });
           return;
         }
-        page.total = res.data.data.total;
+        page.total = parseInt(res.data.data.total);
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
           item.tags = JSON.parse(item.tags || "");
-          item.updateTime = item.updateTime.join("-");
+          // item.updateTime = item.updateTime.join("-");
           item.product_status = item.product_status ? "已上架" : "已下架";
         });
-        // console.log(tableData.value);
+        console.log(tableData.value);
       });
   }
   if (user.role == "ShopOwner") {
-    // console.log("ShopOwner");
+    console.log("ShopOwner");
     Object.keys(product).forEach((key) => delete product[key]); //清空对象
 
     if (searchType.value != "" && searchText.value != "") {
@@ -456,10 +460,11 @@ const handlGetproductList = async () => {
     }
     product["shop_id"] = ShopInfo.getCurrentShop.id; //赋值对象
     await axios
-      .post("/products/getall", JSON.stringify(product), {
+      .get("/products/getProductPagination", {
         params: {
           pageNum: page.pageNum,
           pageSize: page.pageSize,
+          product: JSON.stringify(product),
         },
       })
       .then((res: AxiosResponse) => {
@@ -475,10 +480,10 @@ const handlGetproductList = async () => {
         tableData.value = res.data.data.list;
         tableData.value.forEach((item: Product) => {
           item.tags = JSON.parse(item.tags || "");
-          item.updateTime = item.updateTime.join("-");
+          // item.updateTime = item.updateTime.join("-");
           item.product_status = item.product_status ? "已上架" : "已下架";
         });
-        // console.log(tableData.value);
+        console.log(tableData.value);
       });
   }
 };
@@ -488,41 +493,24 @@ function buttonType(row: any) {
   return row.product_status === "已上架" ? "success" : "info";
 }
 
-// 方法
-function getCategoryName(id: any) {
-  const category = categoryList.value.find(
-    (c: { id: string }) => c.id === String(id)
-  );
-  return category ? category.label : "未知";
-}
-
 //修改商品上下架
 const setProductOnline = (index: any, row: any) => {
-  // console.log(row.product_status);
   tableData.value[index].product_status =
     row.product_status == "已上架" ? "已下架" : "已上架";
-  axios
-    .put(
-      `/products/${row.product_id}/status`
-      //    {
-      //   product_status: row.product_status == "已上架" ? true : false,
-      // }
-    )
-    .then((res: AxiosResponse) => {
-      console.log(res.data);
-      ElMessage({
-        message: res.data.data,
-        type: "success",
-      });
+  axios.put(`/products/${row.product_id}/status`).then((res: AxiosResponse) => {
+    console.log(res.data);
+    ElMessage({
+      message: res.data.data,
+      type: "success",
     });
+  });
 };
 
 //删除单个商品数据
 const deleteRow = (index: any, row: any) => {
   console.log("删除行:", index, row);
   // 在实际应用中，你可能需要从 data 数组中移除该行
-  tableData.value.splice(indexdata, 1);
-  // console.log(row.product_id);
+  tableData.value.splice(indexData, 1);
   ElMessageBox.confirm("确认删除数据？(无法恢复！)", "删除警告", {
     type: "warning",
     icon: markRaw(Delete),
@@ -535,14 +523,14 @@ const deleteRow = (index: any, row: any) => {
           message: res.data.data,
           type: "success",
         });
-        deletedialogVisible.value = false;
+        deleteDialogVisible.value = false;
       })
       .catch(() => {
         ElMessage({
           message: "删除失败",
           type: "error",
         });
-        deletedialogVisible.value = false;
+        deleteDialogVisible.value = false;
       });
   });
 };
@@ -558,16 +546,14 @@ const delData = () => {
     icon: markRaw(Delete),
   })
     .then(() => {
-      // console.log(selectData.value)
       const selectId = selectData.value.map((item: any) => item.product_id);
-      // console.log(selectId); // 输出商品ID列表
       axios
-        .post("/products/deleteall", selectId)
+        .post("/products/deleteAll", selectId)
         .then((res) => {
           console.log(res.data);
           selectData.value = [];
           ElMessage.success("删除成功");
-          handlGetproductList();
+          handleGetProductList();
         })
         .catch((error) => {
           console.error("删除失败", error);
@@ -578,54 +564,16 @@ const delData = () => {
     });
 };
 
-//请求分类id列表
-const handleCategory = () => {
-  axios
-    .get(`/category`)
-    .then((response: AxiosResponse) => {
-      const Data: Category[] = response.data.data;
-      // categoryList.value = Data;
-      // console.log(Data);
-      categoryList.value = Data.map((item: any) => ({
-        id: item.category_id,
-        label: item.category_name,
-      }));
-      // console.log(categoryList.value)
-    })
-    .catch((error: any) => {
-      console.error(error);
-    });
-};
-//请求品牌id列表
-
-const handleBrand = () => {
-  axios
-    .get(`/brand`)
-    .then((response: AxiosResponse) => {
-      const Data: Brand[] = response.data.data;
-      // brandList.value = Data;
-      // console.log(Data);
-      brandList.value = Data.map((item: any) => ({
-        id: item.brand_id,
-        label: item.brand_name,
-      }));
-      // console.log(brandList.value)
-    })
-    .catch((error: any) => {
-      console.error(error);
-    });
-};
-
 // 当组件挂载时执行数据请求
 onMounted(() => {
-  handleCategory();
-  handlGetproductList();
+  // handleCategory();
+  handleGetProductList();
 });
 
 // 分页
 function handleCurrentChange(val: number) {
   page.pageNum = val;
-  handlGetproductList();
+  handleGetProductList();
 }
 
 function handleSizeChange(val: number) {

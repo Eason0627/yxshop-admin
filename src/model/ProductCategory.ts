@@ -1,5 +1,6 @@
 export default interface ProductCategory {
   category_id: string; // 分类ID
+  shop_id: string; // 店铺ID
   category_name: string; // 分类名称
   description: string; // 分类描述
   parentCategory_id?: string; // 父分类ID

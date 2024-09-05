@@ -31,7 +31,7 @@
               <div class="text px-4">商品图片</div>
             </div>
             <!-- 图片组 -->
-            <div class="item-group grid grid-cols-3 gap-4 px-8">
+            <div class="item-group grid grid-cols-1 gap-4 px-8">
               <el-form-item
                 prop="product_info.main_image"
                 class="col-span-1"
@@ -47,7 +47,9 @@
                       content="只能上传一张"
                       placement="bottom"
                     >
-                      <el-icon><InfoFilled /></el-icon>
+                      <el-icon>
+                        <InfoFilled />
+                      </el-icon>
                     </el-tooltip>
                   </div>
                 </template>
@@ -55,12 +57,13 @@
                   :action="uploadUrl"
                   :multiple="true"
                   :limit="1"
+                  :props-str="'main'"
                   :before-upload="validateImage"
-                  ref="uploadRef1"
-                  @onSuccess="handleUploadSuccess"
-                  @onError="handleUploadError"
-                  @change="handleUploadchange"
-                  @update:modelValue="handledelete"
+                  @onSuccess="uploadSuccess"
+                  @onError="uploadError"
+                  @change="uploadChange"
+                  @update:modelValue="uploadValue"
+                  ref="uploadMainRef"
                 />
               </el-form-item>
               <el-form-item
@@ -78,7 +81,9 @@
                       content="只能上传五张"
                       placement="bottom"
                     >
-                      <el-icon><InfoFilled /></el-icon>
+                      <el-icon>
+                        <InfoFilled />
+                      </el-icon>
                     </el-tooltip>
                   </div>
                 </template>
@@ -86,12 +91,13 @@
                   :action="uploadUrl"
                   :multiple="true"
                   :limit="5"
+                  :props-str="'carousel'"
                   :before-upload="validateImage"
-                  ref="uploadRef2"
-                  @onSuccess="CarouselhandleUploadSuccess"
-                  @onError="CarouselhandleUploadError"
-                  @change="CarouselhandleUploadchange"
-                  @update:modelValue="Carouselhandledelete"
+                  @onSuccess="uploadSuccess"
+                  @onError="uploadError"
+                  @change="uploadChange"
+                  @update:modelValue="uploadValue"
+                  ref="uploadCarouselRef"
                 />
               </el-form-item>
               <el-form-item
@@ -109,7 +115,9 @@
                       content="只能上传五张"
                       placement="bottom"
                     >
-                      <el-icon><InfoFilled /></el-icon>
+                      <el-icon>
+                        <InfoFilled />
+                      </el-icon>
                     </el-tooltip>
                   </div>
                 </template>
@@ -117,12 +125,13 @@
                   :action="uploadUrl"
                   :multiple="true"
                   :limit="5"
+                  :props-str="'details'"
                   :before-upload="validateImage"
-                  @change="DetailsImagesHandleUploadchange"
-                  ref="uploadRef3"
-                  @onSuccess="DetailsImagesHandleUploadSuccess"
-                  @onError="DetailsImagesHandleUploadError"
-                  @update:modelValue="DetailsImageshandledelete"
+                  @onSuccess="uploadSuccess"
+                  @onError="uploadError"
+                  @change="uploadChange"
+                  @update:modelValue="uploadValue"
+                  ref="uploadDetailsRef"
                 />
               </el-form-item>
             </div>
@@ -162,7 +171,7 @@
                 <!-- <el-input v-model.number="form.product_info.brand_id" placeholder="请输入品牌ID" /> -->
                 <el-select
                   v-model="form.product_info.brand_id"
-                  placeholder="选择品牌"
+                  placeholder="请选择品牌"
                 >
                   <el-option
                     v-for="brand in brandList"
@@ -242,7 +251,9 @@
                       content="使用逗号  ,  分隔"
                       placement="bottom"
                     >
-                      <el-icon><InfoFilled /></el-icon>
+                      <el-icon>
+                        <InfoFilled />
+                      </el-icon>
                     </el-tooltip>
                   </div>
                 </template>
@@ -455,20 +466,43 @@
             <el-divider></el-divider>
             <div class="action flex justify-end">
               <el-button @click="resetForm">重置</el-button>
-              <el-button type="primary" @click="submitForm">发布商品</el-button>
+              <el-button type="primary" @click="openDialog">发布商品</el-button>
             </div>
           </div>
         </el-form>
       </div>
     </div>
+    <el-dialog
+      v-model="dialogVisible"
+      width="500"
+      :close="dialogClose"
+      align-center
+    >
+      <template #title>
+        <div class="title flex items-center text-md font-bold font-sans">
+          <el-icon><Warning /></el-icon>
+          <span class="ml-2">提示</span>
+        </div>
+      </template>
+      <div class="py-4 font-bold text-[var(--warning-color)]">
+        <span>确认提交商品信息？</span>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="onConfirm" :loading="loading">
+            提交
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, nextTick } from "vue";
+import { ref, reactive, inject, onMounted, nextTick, Ref } from "vue";
 import { Axios, AxiosResponse } from "axios";
-import { ElMessage, UploadProps } from "element-plus";
-import { ElInput } from "element-plus";
+import { ElMessage, ElInput, FormInstance, ElLoading } from "element-plus";
 import FileUploader from "@/components/upload/FileUploader.vue";
 
 // 获取 axios
@@ -493,8 +527,8 @@ interface ProductInfo {
   expiration_date: string;
   category_id: string;
   main_image: string;
-  additional_images: UploadProps[];
-  details_images: UploadProps[];
+  additional_images: string[];
+  details_images: string[];
   tags: string[];
 }
 
@@ -525,7 +559,38 @@ interface FormModel {
   inventory: Inventory;
 }
 
-const form: FormModel = reactive({
+// 定义品牌类型
+interface Brand {
+  brand_id: string;
+  brand_name: string;
+}
+// 定义店铺类型
+interface Shop {
+  shop_id: string;
+  shop_name: string;
+}
+// 定义仓库类型
+interface Warehouse {
+  warehouse_id: string;
+  warehouse_name: string;
+}
+//定义分类类型
+interface Category {
+  category_id: number;
+  category_name: string;
+}
+
+interface Item {
+  brand_name: string | null;
+  shop_name: string | null;
+  warehouse_name: string | null;
+  user_id: string | null;
+  brand_id: string | null;
+  shop_id: string | null;
+  warehouse_id: string | null;
+}
+
+const form: FormModel = ref({
   product_info: {
     product_name: "huawei mate60 pro",
     description: "这款星辰X5 Pro 智能手机是一款旗舰级设备，旨在",
@@ -566,7 +631,11 @@ const form: FormModel = reactive({
   },
 });
 // 表单引用
-const formRef = ref<HTMLInputElement | null>(null);
+const formRef = ref<FormInstance>();
+// 上传组件对象
+const uploadMainRef = ref();
+const uploadCarouselRef = ref();
+const uploadDetailsRef = ref();
 
 // 表单验证规则
 const rules = reactive({
@@ -584,45 +653,6 @@ const rules = reactive({
   ],
   // 添加更多验证规则...
 });
-//图片上传引用
-const uploadRef1 = ref(null);
-const uploadRef2 = ref(null);
-const uploadRef3 = ref(null);
-
-//图片列表
-const fileLists1 = ref<UploadProps[]>([]);
-const fileLists2 = ref<UploadProps[]>([]);
-const fileLists3 = ref<UploadProps[]>([]);
-
-interface Item {
-  brand_name: string | null;
-  shop_name: string | null;
-  warehouse_name: string | null;
-  user_id: string | null;
-  brand_id: string | null;
-  shop_id: string | null;
-  warehouse_id: string | null;
-}
-// 定义品牌类型
-interface Brand {
-  brand_id: string;
-  brand_name: string;
-}
-// 定义店铺类型
-interface Shop {
-  shop_id: string;
-  shop_name: string;
-}
-// 定义仓库类型
-interface Warehouse {
-  warehouse_id: string;
-  warehouse_name: string;
-}
-//定义分类类型
-interface Category {
-  category_id: number;
-  category_name: string;
-}
 
 // 响应式引用数组
 const brandList = ref<Brand[]>([]);
@@ -636,6 +666,27 @@ const dynamicTags = ref(["手机", "数码", "相机"]);
 const inputVisible = ref(false);
 const InputRef = ref<InstanceType<typeof ElInput>>();
 
+// 上传提示对话框
+const dialogVisible = ref(false);
+const loading = ref(false);
+
+// 打开对话框
+const openDialog = () => {
+  dialogVisible.value = true;
+};
+
+// 对话框关闭
+const dialogClose = () => {
+  dialogVisible.value = false;
+};
+
+// 点击提交按钮
+const onConfirm = async () => {
+  loading.value = true;
+  await submitForm();
+};
+
+// 删除标签
 const handleClose = (tag: string) => {
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
   form.product_info.tags = [...dynamicTags.value];
@@ -661,62 +712,93 @@ const handleInputConfirm = () => {
 /**tags */
 
 // 提交表单
-const submitForm = () => {
-  // 上传图片
-  const promises = [];
-  if (uploadRef1.value && typeof uploadRef1.value.submitUpload === "function") {
-    promises.push(uploadRef1.value.submitUpload());
-    // console.log(1);
-  }
-  if (uploadRef2.value && typeof uploadRef2.value.submitUpload === "function") {
-    promises.push(uploadRef2.value.submitUpload());
-    // console.log(2);
-  }
-  if (uploadRef3.value && typeof uploadRef3.value.submitUpload === "function") {
-    promises.push(uploadRef3.value.submitUpload());
-    // console.log(3);
-  }
-
-  Promise.all(promises).then(() => {
-    // console.log(4);
-    // 所有图片上传成功后，继续验证表单
+const submitForm = async () => {
+  try {
+    // 验证表单
     if (!formRef.value) return;
-    // console.log(form.product_info.main_image);
-    setTimeout(() => {
-      console.log(form.product_info.main_image);
-      formRef.value.validate((valid: boolean) => {
-        // console.log(5);
-        if (valid) {
-          // console.log(6);
-          // 发送请求发布商品
-          axios
-            .post("/products", JSON.stringify(form))
-            .then((response: AxiosResponse) => {
-              console.log(response.data);
-              ElMessage({
-                message: response.data.data,
-                type: "success",
-              });
-            })
-            .catch(() => {
-              ElMessage({
-                message: "添加失败",
-                type: "warning",
-              });
+    const isValid = await formRef.value.validate();
+    if (isValid) {
+      const formData = new FormData();
+
+      // 获取表单字段
+      const formFields = formRef.value.fields;
+      formFields.forEach((field) => {
+        let name = field.prop;
+        const value = field.fieldValue;
+
+        if (name === "product_info.main_image") {
+          formData.append("main_image", value.raw);
+        } else if (
+          name === "product_info.additional_images" ||
+          name === "product_info.details_images"
+        ) {
+          name = name.split("product_info.")[1];
+          if (Array.isArray(value)) {
+            value.forEach((file) => {
+              formData.append(`${name}`, file.raw); // 注意这里append的名字相同，后端需要支持处理同名的文件数组
             });
+          }
         }
       });
-    }, 1000);
-  });
+      formData.append("formParams", JSON.stringify(form));
+
+      // 发送请求发布商品
+      await axios
+        .post("/products", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((res) => {
+          const timer = setInterval(() => {
+            if (res.data.code === 200) {
+              clearInterval(timer);
+              loading.value = false;
+            }
+          }, 200);
+          if (res.data.code === 200) {
+            ElMessage({
+              message: res.data.data,
+              type: "success",
+            });
+          } else {
+            ElMessage({
+              message: res.data.message || "未知错误",
+              type: "error",
+            });
+          }
+        })
+        .catch((_error: any) => {
+          ElMessage({
+            message: "添加失败",
+            type: "error",
+          });
+        });
+    } else {
+      ElMessage({
+        message: "表单验证失败",
+        type: "warning",
+      });
+    }
+  } catch (error) {
+    ElMessage({
+      message: "添加失败, 缺少必要信息！！！",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+    dialogVisible.value = false;
+  }
 };
 
 // 重置表单
 const resetForm = () => {
   if (!formRef.value) return;
-  formRef.value.resetFields();
+  formRef.value?.resetFields();
 };
 
-// 上传前验证图片格式
+// 图片上传相关函数
+// 1. 上传前验证图片格式
 function validateImage(file: File): boolean {
   // 验证图片是否为 JPEG 或 PNG
   const isJPGOrPNG = file.type === "image/jpeg" || file.type === "image/png";
@@ -732,100 +814,69 @@ function validateImage(file: File): boolean {
   }
   return true;
 }
-// 商品首页图片
-function handleUploadSuccess(response: any, file: any, fileList: any[]) {
-  console.log("上传成功", response, file, fileList);
-  // 处理上传成功后的逻辑
-  // 假设后端返回的 URL 存储在 response.data.url
-  form.product_info.main_image = response.data;
-  // console.log("图片 URL:", form.product_info.main_image);
-  // console.log("图片 fileList:", fileList);
-}
-function handleUploadError(error: any, file: any, fileList: any[]) {
-  console.error("上传失败", error, file, fileList);
-  // 处理上传失败后的逻辑
-}
-function handledelete(file: any, fileList: any[]) {
-  console.log("删除文件", fileList);
-  //清空数组
-  fileLists1.value.lenght = 0;
-  console.log("fileList", fileLists1.value);
-}
-function handleUploadchange(file: any, fileList: any[]) {
-  // console.log("上传中", file, fileList);
-  fileLists1.value.push(fileList[0]);
-  console.log("fileList", fileLists1.value);
-  // 处理上传中的逻辑
-}
-
-// 商品轮播图图片
-function CarouselhandleUploadSuccess(
-  response: any,
-  file: any,
-  fileList: any[]
+// 2. 上传成功
+function uploadSuccess(
+  response?: any,
+  file?: any,
+  fileList?: any[],
+  props?: string
 ) {
   console.log("上传成功", response, file, fileList);
-  // 假设后端返回的 URL 存储在 response.data.url
-  form.product_info.additional_images.push(response.data);
-}
-function CarouselhandleUploadError(error: any, file: any, fileList: any[]) {
-  console.error("上传失败", error, file, fileList);
-  // 处理上传失败后的逻辑
-}
-function CarouselhandleUploadchange(file: any, fileList: any[]) {
-  // console.log("上传中", file, fileList);
-  fileLists2.value.push(file);
-  // console.log("fileList", fileLists.value);
-  // 处理上传中的逻辑
-}
-function Carouselhandledelete(file: any, fileList: any[]) {
-  // console.log("剩余文件", fileList);
-  // console.log("存储文件删除前", fileLists.value);
-  fileLists2.value.splice(fileLists2.value.indexOf(file), 1);
-  // console.log("存储文件", fileLists);
-  // 处理删除文件的逻辑
+  if (props === "main") {
+    form.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.product_info.details_images = fileList as string[];
+  }
 }
 
-// 商品详细图
-function DetailsImagesHandleUploadSuccess(
-  response: any,
-  file: any,
-  fileList: any[]
-) {
-  console.log("上传成功", response, file, fileList);
-  // 假设后端返回的 URL 存储在 response.data.url
-  form.product_info.details_images.push(response.data);
-  console.log("图片 URL:", form.product_info.details_images);
-}
-function DetailsImagesHandleUploadError(
-  error: any,
-  file: any,
-  fileList: any[]
+// 3. 上传失败
+function uploadError(
+  error?: any,
+  file?: any,
+  fileList?: any[],
+  props?: string
 ) {
   console.error("上传失败", error, file, fileList);
-  // 处理上传失败后的逻辑
-}
-function DetailsImagesHandleUploadchange(file: any, fileList: any[]) {
-  // console.log("上传中", file, fileList);
-  fileLists3.value.push(file);
-  // console.log("fileList", fileLists.value);
-  // 处理上传中的逻辑
-}
-function DetailsImageshandledelete(file: any, fileList: any[]) {
-  // console.log("剩余文件", fileList);
-  // console.log("存储文件删除前", fileLists.value);
-  fileLists3.value.splice(fileLists3.value.indexOf(file), 1);
-  // console.log("存储文件", fileLists);
-  // 处理删除文件的逻辑
+  if (props === "main") {
+    form.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.product_info.details_images = fileList as string[];
+  }
 }
 
-//请求品牌、仓库、店铺
-const handleBrand = () => {
+// 更新数据
+function uploadValue(file?: any, fileList?: any[], props?: string) {
+  console.log("删除文件", file, fileList);
+  if (props === "main") {
+    form.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.product_info.details_images = fileList as string[];
+  }
+}
+
+// 文件上传中
+function uploadChange(file?: any, fileList?: any[], props?: string) {
+  console.log("上传中", file, fileList, props);
+  if (props === "main") {
+    form.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.product_info.details_images = fileList as string[];
+  }
+}
+
+// 获取当前用户已签约的品牌
+const getBrandList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
-  // console.log(user.id);
-  // console.log(Number(user.id));
 
-  axios
+  await axios
     .get(`/products/commentsbyuserid/${user.id}`)
     .then((response: AxiosResponse) => {
       const Data: Item[] = response.data.data;
@@ -900,8 +951,8 @@ const handleCategory = () => {
 // 初始化表单数据
 onMounted(() => {
   // 可以在这里初始化表单数据
-  handleBrand();
-  handleCategory();
+  // handleBrand();
+  // handleCategory();
 });
 </script>
 
