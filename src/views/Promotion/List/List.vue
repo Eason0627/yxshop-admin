@@ -225,8 +225,8 @@ const dialogType = ref("");
 const getData = async () => {
   loading.value = true;
   // 发起请求 --- 获取店铺数据
-  requestJSON.shop_id = JSON.parse(localStorage.getItem("currentShop") || "{}").id;
-  // console.log(JSON.parse(localStorage.getItem("currentShop") || "{}").id);
+  requestJSON.shop_id = JSON.parse(localStorage.getItem("currentShop") || "{}").shop_id;
+  // console.log(JSON.parse(localStorage.getItem("currentShop") || "{}"));
   
   await axios
     .get("/promotion/getPromotionPagination", {

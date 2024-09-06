@@ -30,7 +30,7 @@
 
         <el-form-item label="绑定店铺" prop="shop_id" required>
           <el-select v-model="promotion.shop_id" placeholder="选择店铺">
-            <el-option :label="shop.name" :value="shop.id" />
+            <el-option :label="shop.shop_name" :value="shop.shop_id" />
           </el-select>
         </el-form-item>
 
@@ -117,6 +117,7 @@
               label: 'label',
             }"
            
+           
             
           />
           </el-dialog>
@@ -143,13 +144,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watchEffect,defineExpose,onMounted } from "vue";
+import { ref, reactive, watchEffect,onMounted } from "vue";
 // import Shop from "@/model/Shop";
 import { ElMessage, FormInstance, FormRules } from "element-plus";
 import axios from "@/utils/axios";
 import { AxiosResponse } from "axios";
 // import User from "@/model/User";
 import Promotion from "@/model/Promotion";
+
+import moment from 'moment';
 
 // 传参数据类型
 interface Props {
@@ -175,16 +178,18 @@ const props = withDefaults(defineProps<Props>(), {
   onCancel: () => {},
 });
 
-defineExpose({getAvailableProductList})
+// defineExpose({getAvailableProductList})
 
 const emit = defineEmits<Emits>();
 
 interface Shop {
-  name?: string,
-  id?: number|string;
+  shop_name?: string,
+  shop_id?: number|string;
 }
 
-const shop: Shop = JSON.parse(localStorage.getItem("currentShop") || "") as Shop; // 当前登录用户
+const shop = JSON.parse(localStorage.getItem("currentShop") || "") as Shop; // 当前登录用户
+
+
 
 const dialogVisible = ref(false); // 弹框显隐
 const dialogType = ref(""); // 弹框类型
@@ -236,11 +241,13 @@ const rules = reactive<FormRules<Promotion>>({
   // ],
 });
 
+
+
 //获取店铺活动类型请求函数
 async function getTypeList() {
   if(typeList.value.length !== 0)return;
   await axios
-  .get(`/promotionType/list/${shop.id}`)
+  .get(`/promotionType/list/${shop.shop_id}`)
   .then((response: AxiosResponse) => {
     if(response.data.data.length == 0)return ElMessage.error("该店铺，活动类型无数据");
     typeList.value = response.data.data
@@ -260,9 +267,11 @@ async function getTypeList() {
 //获取可用商品列表请求函数
 async function getAvailableProductList() {
   innerVisible.value = true
+  // if(cities.value.length > 0)return;
   await axios
-  .get(`/products/list?shop_id=${shop.id}`)
+  .get(`/products/list?shop_id=${shop.shop_id}`)
   .then((response: AxiosResponse) => {
+    if(response.data.data.length == 0)return ElMessage.error("该店��，可用商品无数据");
     cities.value = response.data.data.map((item: any) => ({
       value: item.product_id,
       label: item.product_name,
@@ -290,7 +299,7 @@ const clearData = () => {
     status: true,
     start_date: "",
     end_date: "",
-    product_id: []
+    product_id: ""
   };
 };
 
@@ -300,6 +309,19 @@ function onCancel() {
   emit("update:Dialog", promotion.value, false);
 }
 
+//格式化日期函数
+function formatDate(dateStr: string | number | Date) {
+      // 假设输入格式为 YYYY-MM-DDTHH:mm:ss.SSSZ
+      const date = new Date(dateStr);
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    }
 // 对话框确认按钮
 async function onConfirm(promotionFormRef: FormInstance | undefined) {
   // console.log(promotionFormRef)
@@ -307,9 +329,21 @@ async function onConfirm(promotionFormRef: FormInstance | undefined) {
   await promotionFormRef.validate((valid: any) => {
     if (valid) {
       console.log("表单验证正确！", promotion.value);
-      console.log(values.value[0])
-      // promotion.start_date = values[0];
-      // promotion.end_date = values[1];
+      const str = `[${promotion.value?.product_id}]`;
+      if (promotion.value) {
+        // 正常赋值
+        promotion.value.product_id = str;
+      }
+      // 确保 promotion.value 存在且为对象类型
+      if (promotion.value && typeof promotion.value === 'object') {
+        promotion.value.start_date = formatDate(values.value[0]);
+      }
+          // 确保 promotion.value 存在并设置 end_date 属性
+      if (promotion.value) {
+        promotion.value.end_date = formatDate(values.value[1]); // 使用直接赋值而非索引访问
+      }
+      console.log(promotion.value );
+      
       if (dialogType.value == "add") {
           // 添加店铺
           addShop().then(() => {
