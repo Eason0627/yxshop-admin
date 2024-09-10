@@ -88,7 +88,7 @@
             </span>
             <Transition name="fade">
               <ul
-                class="shopMenu absolute top-0 right-[105%] flex flex-col w-full p-1 text-left text-sm border-[1px] rounded-md bg-white shadow-lg transition-all duration-300 z-10"
+                class="shopMenu absolute top-0 right-[103%] flex flex-col w-full p-1 text-left text-sm border-[1px] rounded-md bg-white shadow-lg transition-all duration-300 z-10"
                 @mouseenter="onShopMouseenter(true, $event)"
                 @mouseleave="onShopMouseLeave(false, $event)"
                 v-show="shopShow"
@@ -160,7 +160,7 @@ import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
 import { userShopStore } from "@/store/index";
-import { ElMessageBox, ElNotification } from "element-plus";
+import { ElMessageBox, ElNotification ,ElMessage } from "element-plus";
 import type Shop from "@/model/Shop";
 
 // 注入默认头像
@@ -221,7 +221,7 @@ const getRouteInfo = () => {
     sameRoute.value = children;
   }
 };
-
+// const currentShopInStorage = useLocalStorage('currentShop', null);
 const getShops = async () => {
   await axios.get(`/shops/getShopByUserId/${user.id}`).then((res) => {
     // 存储到 pinia
@@ -244,11 +244,15 @@ const selectShop = (item: Shop) => {
     .then(() => {
       ShopStore.setCurrentShop(item);
       CurrentShop.value = item;
-      ElNotification({
-        title: "切换店铺成功",
+      // ElNotification({
+      //   title: "切换店铺成功",
+      //   message: "切换为" + item.shop_name + "店铺",
+      //   type: "success",
+      // });
+      ElMessage({
         message: "切换为" + item.shop_name + "店铺",
-        type: "success",
-      });
+        type: 'success',
+      })
     })
     .catch(() => {});
 };
