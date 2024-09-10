@@ -63,7 +63,7 @@
           </div>
         </div>
         <ul
-          class="userMenu absolute top-[110%] w-full p-1 text-left text-sm border-[1px] rounded-md shadow-lg bg-white z-10"
+          class="userMenu absolute top-[100%] w-full p-1 text-left text-sm border-[1px] rounded-md shadow-lg bg-white z-10"
           @mouseenter="onMenuMouseenter(true, $event)"
           @mouseleave="onMenuMouseLeave(false, $event)"
           v-show="menuShow"

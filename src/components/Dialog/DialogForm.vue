@@ -1,63 +1,169 @@
-<!-- DialogForm.vue -->
 <template>
-  <el-dialog :title="title" v-model="visible" @close="closeDialog">
+  <el-dialog :title="title" v-model="dialogVisible" @close="closeDialog">
     <el-form
       ref="formRef"
+      class="flex flex-col justify-center items-center py-4"
       :model="formData"
       :rules="rules"
       :label-position="labelPosition"
       label-width="120px"
     >
-      <template v-for="field in fields">
-        <el-form-item
-          :label="field.label"
-          :prop="field.prop"
-          :rules="field.rules"
+      <div
+        v-for="groupName in Object.keys(groupFields)"
+        :key="groupName"
+        class="w-full px-20"
+      >
+        <div
+          class="title flex items-center py-4 font-bold text-left text-xl text-[--info-text-color]"
         >
-          <el-input
-            v-if="field.type === 'textarea'"
-            type="textarea"
-            v-model="formData[field.prop]"
-            :placeholder="field.placeholder"
-          ></el-input>
-          <FileUploader
-            v-else-if="field.type === 'uploader'"
-            :action="field.uploadConfig.uploadAction"
-            :multiple="field.uploadConfig.multiple"
-            :limit="field.uploadConfig.limit"
-            :before-upload="validateImage"
-            @change="uploadChange"
-            @onSuccess="success"
-            @onError="error"
-          />
-          <component
-            :is="getFieldComponent(field.type)"
-            v-model="formData[field.prop]"
-            :options="field.options"
-            v-bind="$attrs"
-            :placeholder="field.placeholder"
-            @change="handleChange"
-            v-else
+          <div class="line w-1 h-6 rounded-md bg-[--theme-color]"></div>
+          <div class="text px-4">{{ groupName }}</div>
+        </div>
+        <div class="w-full">
+          <div
+            class="px-10 mx-auto"
+            v-for="(field, index) in groupFields[groupName]"
+            :key="index"
           >
-            <!-- 添加子元素以支持 el-radio-group 和 el-checkbox-group -->
-            <template
-              v-if="field.type === 'radio' || field.type === 'checkbox'"
+            <el-form-item
+              :prop="field.prop"
+              :rules="field.rules"
+              v-show="field.show"
             >
-              <component
-                v-for="option in field.options"
-                :key="option.value"
-                :is="field.type === 'radio' ? 'el-radio' : 'el-checkbox'"
-                :label="option.label"
-                :value="option.value"
-              />
-            </template>
-          </component>
-        </el-form-item>
-      </template>
+              <template #label>
+                <div class="label">
+                  <el-tooltip
+                    class="box-item"
+                    effect="dark"
+                    :content="field.tips"
+                    placement="bottom"
+                    v-if="field.tips"
+                  >
+                    <div class="flex items-center">
+                      <span>{{ field.label }}</span
+                      ><el-icon><InfoFilled /></el-icon>
+                    </div>
+                  </el-tooltip>
+                  <span v-else>{{ field.label }}</span>
+                </div>
+              </template>
+              <template #default>
+                <div v-if="field.HTML" v-html="field.HTML"></div>
+                <el-checkbox
+                  v-else-if="field.type === 'checkbox'"
+                  v-model="formData[field.prop]"
+                  :label="field.label"
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                ></el-checkbox>
+                <el-input
+                  v-else-if="field.type === 'text'"
+                  v-model="formData[field.prop]"
+                  :placeholder="field.placeholder"
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                ></el-input>
+                <el-select
+                  v-else-if="field.type === 'select'"
+                  v-model="formData[field.prop]"
+                  :placeholder="field.placeholder"
+                  :multiple="field.multiple"
+                  :loading="field.loading ? field.loading : false"
+                  @focus="
+                    field.onFocus && field.onFocus(formData[field.prop], field)
+                  "
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                >
+                  <el-option
+                    v-for="option in field.options"
+                    :key="option.value"
+                    :label="option.label"
+                    :value="option.value"
+                    :disabled="option.disabled"
+                  >
+                    <span>{{ option.label }}</span>
+                  </el-option>
+                  <template #loading>
+                    <svg class="circular" viewBox="0 0 50 50">
+                      <circle class="path" cx="25" cy="25" r="20" fill="none" />
+                    </svg>
+                  </template>
+                </el-select>
+                <el-date-picker
+                  v-else-if="field.type === 'datepicker'"
+                  v-model="formData[field.prop]"
+                  type="date"
+                  :placeholder="field.placeholder"
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                ></el-date-picker>
+                <el-input-number
+                  style="min-width: 200px"
+                  v-else-if="field.type === 'number'"
+                  v-model="formData[field.prop]"
+                  :placeholder="field.placeholder"
+                  :max="field.max"
+                  :min="field.min"
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                ></el-input-number>
+                <el-input-number
+                  style="min-width: 200px"
+                  v-else-if="field.type === 'double'"
+                  v-model="formData[field.prop]"
+                  :placeholder="field.placeholder"
+                  :precision="2"
+                  :step="0.1"
+                  :max="field.max"
+                  :min="field.min"
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                />
+                <el-input
+                  type="textarea"
+                  v-else-if="field.type === 'textarea'"
+                  v-model="formData[field.prop]"
+                  :placeholder="field.placeholder"
+                  @change="
+                    field.onChange &&
+                      field.onChange(formData[field.prop], field)
+                  "
+                ></el-input>
+                <FileUploader
+                  v-else-if="field.type === 'uploader'"
+                  :action="field.uploadConfig.uploadAction"
+                  :multiple="field.uploadConfig.multiple"
+                  :limit="field.uploadConfig.limit"
+                  :before-upload="validateImage"
+                  @change="uploadChange"
+                  @onSuccess="success"
+                  @onError="error"
+                />
+              </template>
+            </el-form-item>
+            <div v-if="index == groupFields[groupName].length - 1">
+              <el-divider />
+            </div>
+          </div>
+        </div>
+      </div>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="visible = false">取 消</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitForm">确 定</el-button>
       </span>
     </template>
@@ -65,62 +171,67 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watchEffect } from "vue";
-import { ElForm, FormInstance, ElMessage, FormRules } from "element-plus";
-import { FormField, DialogFormProps } from "./FormField";
+import { ref, reactive, computed, watch } from "vue";
+import { ElForm, FormInstance, ElMessage } from "element-plus";
+import { FormField } from "./FormField";
 import FileUploader from "@/components/upload/FileUploader.vue";
 
-const props = withDefaults(defineProps<DialogFormProps>(), {
+interface Props<T> {
+  title: string;
+  dialogVisible: boolean;
+  labelPosition: any;
+  fields: FormField<T>[];
+  formData: any;
+}
+
+const props = withDefaults(defineProps<Props<any>>(), {
   title: "",
-  visible: false,
+  dialogVisible: false,
   labelPosition: "left",
   fields: () => [],
+  formData: {},
 });
 
-const emit = defineEmits([
-  "update:visible",
-  "submit",
-  "uploadChange",
-  "success",
-  "error",
-]);
+const emit = defineEmits<{
+  (event: "update:dialogVisible", value: boolean): void;
+  (event: "update:formData", value: any): void;
+  (event: "submit", data: any): void;
+  (event: "uploadChange", file: any, fileList: any[]): void;
+  (event: "success", response: any, file: any, fileList: any[]): void;
+  (event: "error", err: any, file: any, fileList: any[]): void;
+}>();
 
 const formRef = ref<FormInstance>();
-const formData = reactive<any>({});
-const rules = reactive<FormRules>({});
+const formData = ref<any>({});
+const rules = reactive<{ [key: string]: any[] }>({});
 
 const title = ref(props.title);
-const visible = ref(props.visible);
+const dialogVisible = ref(props.dialogVisible);
 const labelPosition = ref(props.labelPosition);
-const fields = ref<FormField[]>(props.fields);
+const fields = ref<FormField<any>[]>(props.fields);
 
-function getFieldComponent(type: string) {
-  switch (type) {
-    case "text":
-      return "el-input";
-    case "number":
-      return "el-input-number";
-    case "select":
-      return "el-select";
-    case "datepicker":
-      return "el-date-picker";
-    case "radio":
-      return "el-radio-group";
-    case "checkbox":
-      return "el-checkbox-group";
-    case "uploader":
-      return "FileUploader";
-    default:
-      return "el-input";
-  }
-}
+// 计算属性，根据 group 分组字段
+const groupFields = computed(() => {
+  const grouped: Record<string, FormField<any>[]> = {};
+
+  fields.value.forEach((field) => {
+    const groupName = field.group || "默认分组";
+    if (!grouped[groupName]) {
+      grouped[groupName] = [];
+    }
+    grouped[groupName].push(field);
+  });
+
+  return grouped;
+});
 
 // 验证表单
 function submitForm() {
+  console.log(formData.value);
   formRef.value?.validate((valid) => {
     if (valid) {
-      emit("submit", formData);
-      emit("update:visible", false);
+      emit("submit", formData.value);
+      emit("update:dialogVisible", false);
     } else {
       ElMessage.error("验证失败");
     }
@@ -147,36 +258,40 @@ function uploadChange(file: any, fileList: any[]) {
 }
 
 // 上传成功回调
-function success(_response: any, file: any, fileList: any) {
-  emit("success", file, fileList);
+function success(response: any, file: any, fileList: any) {
+  emit("success", response, file, fileList);
 }
 
 // 上传失败回调
-function error(_err: any, file: any, fileList: any) {
-  emit("error", file, fileList);
+function error(err: any, file: any, fileList: any) {
+  emit("error", err, file, fileList);
 }
 
 // 关闭对话框
 const closeDialog = () => {
   // 重置数据
   formRef.value?.resetFields();
-  emit("update:visible", false);
+  emit("update:formData", {});
+  emit("update:dialogVisible", false);
 };
 
 // 监听 props 数据变化
-watchEffect(() => {
-  if (props.visible) {
-    title.value = props.title;
-    visible.value = props.visible;
-    labelPosition.value = props.labelPosition;
-    fields.value = props.fields;
-  }
-});
+watch(
+  () => props,
+  (newProps) => {
+    title.value = newProps.title;
+    dialogVisible.value = newProps.dialogVisible;
+    labelPosition.value = newProps.labelPosition;
+    fields.value = newProps.fields;
+    formData.value = newProps.formData;
+  },
+  { deep: true }
+);
 
 // 处理表单字段的 change 事件
-function handleChange(event: any) {
-  console.log("表单字段变化:", event);
-}
+// function handleChange(event: any) {
+//   console.log("表单字段变化:", event);
+// }
 </script>
 
 <style scoped>
@@ -189,5 +304,41 @@ function handleChange(event: any) {
 
 .el-textarea {
   max-width: 500px;
+}
+</style>
+
+<style scoped>
+.el-input,
+.el-select,
+.el-textarea {
+  width: 100%;
+  max-width: 300px;
+}
+
+.el-textarea {
+  max-width: 500px;
+}
+
+.el-select-dropdown__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  font-size: 20px;
+}
+
+.circular {
+  display: inline;
+  height: 30px;
+  width: 30px;
+  animation: loading-rotate 2s linear infinite;
+}
+.path {
+  animation: loading-dash 1.5s ease-in-out infinite;
+  stroke-dasharray: 90, 150;
+  stroke-dashoffset: 0;
+  stroke-width: 2;
+  stroke: var(--el-color-primary);
+  stroke-linecap: round;
 }
 </style>
