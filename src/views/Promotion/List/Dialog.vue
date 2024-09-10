@@ -152,7 +152,6 @@ import { AxiosResponse } from "axios";
 // import User from "@/model/User";
 import Promotion from "@/model/Promotion";
 
-import moment from 'moment';
 
 // 传参数据类型
 interface Props {
@@ -196,6 +195,7 @@ const dialogType = ref(""); // 弹框类型
 const innerVisible = ref(false)//二次弹窗显隐
 const promotion = ref<Promotion>();//活动数据
 
+// const selectedItems= ref<string>('');
 
 const values = ref('')
 
@@ -346,7 +346,7 @@ async function onConfirm(promotionFormRef: FormInstance | undefined) {
       
       if (dialogType.value == "add") {
           // 添加店铺
-          addShop().then(() => {
+          addPromotion().then(() => {
             // 清除表单数据
             promotionFormRef.resetFields();
             clearData();
@@ -355,7 +355,7 @@ async function onConfirm(promotionFormRef: FormInstance | undefined) {
        
       } else if (dialogType.value == "edit") {
         
-            updateShop().then(() => {
+            updatePromotion().then(() => {
               // 清除表单数据
               promotionFormRef.resetFields();
               clearData();
@@ -363,7 +363,7 @@ async function onConfirm(promotionFormRef: FormInstance | undefined) {
             });
 
         } else {
-          updateShop().then(() => {
+          updatePromotion().then(() => {
             // 清除表单数据
             promotionFormRef.resetFields();
             clearData();
@@ -380,8 +380,8 @@ async function onConfirm(promotionFormRef: FormInstance | undefined) {
   
 
 
-// 请求接口添加店铺
-async function addShop() {
+// 请求接口添加活动
+async function addPromotion() {
   // console.log(JSON.stringify(promotion.value));
   // JSON.stringify(promotion.value?.product_id)
   // 新增店铺
@@ -398,19 +398,19 @@ async function addShop() {
     });
 }
 
-// 请求接口更新店铺信息
-async function updateShop() {
+// 请求接口更新活动·信息
+async function updatePromotion() {
   // 更新店铺
   await axios
-    .put(`/shops/${promotion.value?.shop_id}`, promotion.value)
+    .put(`/promotion/${promotion.value?.promotion_id}`, promotion.value)
     .then((res: AxiosResponse) => {
       if (res.data.code == 200) {
-        ElMessage.success("更新店铺成功！");
+        ElMessage.success("更新活动成功！");
         emit("getData");
       }
     })
     .catch(() => {
-      ElMessage.error("更新店铺失败！");
+      ElMessage.error("更新活动失败！");
     });
 }
 

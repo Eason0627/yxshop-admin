@@ -65,19 +65,19 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue";
 import { formatDate } from "@/utils/formatDate";
-import Promotion from "@/model/Promotion";
+import PromotionType from "@/model/PromotionType ";
 import { ElMessage } from "element-plus";
 
 interface Props {
-  tableData?: Promotion[] | undefined;
-  selectData?: Promotion[] | undefined;
+  tableData?: PromotionType[] | undefined;
+  selectData?: PromotionType[] | undefined;
   delData: () => void;
 }
 
 // 自定义事件
 interface Emits {
   (e: "getData"): void;
-  (e: "update:Query", formData?: Promotion, flag?: boolean, type?: string): void;
+  (e: "update:Query", formData?: PromotionType, flag?: boolean, type?: string): void;
   (
     e: "search",
     key?: string,
@@ -102,16 +102,12 @@ const searchType = ref(""); // 搜索类型
 const time = ref(""); // 时间范围展示
 const searchList = [
   {
-    value: "title",
-    label: "标题",
+    value: "name",
+    label: "类型名称",
   },
   {
-    value: "minimum_spend",
-    label: "最低消费金额",
-  },
-  {
-    value: "discount",
-    label: "折扣百分比",
+    value: "status",
+    label: "状态",
   },
   {
     value: "description",
@@ -120,8 +116,8 @@ const searchList = [
 ]; // 搜索类型配置
 const startTime = ref(""); // 开始时间
 const endTime = ref(""); // 结束时间
-const selectData = ref<Promotion[]>([]); // 所选数据
-const tableData = ref<Promotion[]>([]);
+const selectData = ref<PromotionType[]>([]); // 所选数据
+const tableData = ref<PromotionType[]>([]);
 const handleTimeChange = (value: Array<Date>) => {
   if (!value) return;
   startTime.value = formatDate(value[0], "yyyy-MM-dd hh:mm:ss");
@@ -161,8 +157,8 @@ const reSet = () => {
 };
 
 watchEffect(() => {
-  selectData.value = props.selectData as Promotion[];
-  tableData.value = props.tableData as Promotion[];
+  selectData.value = props.selectData as PromotionType[];
+  tableData.value = props.tableData as PromotionType[];
 });
 </script>
 <style lang="scss" scoped></style>

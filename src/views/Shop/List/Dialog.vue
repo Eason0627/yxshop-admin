@@ -249,6 +249,8 @@ const clearData = () => {
     shop_description: "",
     shop_image: "",
     status: "Active",
+    id:"",
+    name:"",
   };
 };
 

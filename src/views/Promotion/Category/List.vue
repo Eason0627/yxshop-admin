@@ -37,19 +37,6 @@
             align="center"
             v-for="item in tableHeader"
           >
-            <template v-if="item.prop === 'discount'" #default="{ row }">
-              {{ row.discount + '%' }}
-            </template>
-          
-            <template v-if="item.prop === 'minimum_spend'" #default="{row}">
-              {{ row.minimum_spend + '元' }}
-            </template>
-
-            <!-- <template v-if="item.type === 'date'" #default="scope">
-              {{
-                scope.row.status === "Active" ? scope.row.createTime : "待审核"
-              }}
-            </template> -->
 
             <template v-if="item.type === 'tags'" #default="scope">
               <el-tag
@@ -108,7 +95,7 @@
       <Dialog
       :dialogVisible="dialogVisible"
       :dialogType="dialogType"
-      :promotion="promotion"
+      :promotionType="promotionType"
       @getData="getData"
       @update:Dialog="updateDialog"
       ref="childRef"
@@ -123,7 +110,7 @@ import Query from "./Query.vue";
 import Dialog from "./Dialog.vue";
 
 // 导入model类型
-import  Promotion  from "@/model/Promotion";
+import  PromotionType  from "@/model/PromotionType ";
 import { ElTable, ElMessage, ElMessageBox } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 
@@ -133,9 +120,9 @@ import { Axios, AxiosResponse } from "axios";
 const axios: Axios = inject("axios") as Axios; 
 
 // 搜索结果列表
-const searchList = ref<Promotion[]>([])
+const searchList = ref<PromotionType[]>([])
 //数据列表
-const promotionList = ref<Promotion[]>([])
+const promotionList = ref<PromotionType[]>([])
 // 数据加载状态
 const loading = ref(false); 
 // 表头渲染数据
@@ -145,38 +132,33 @@ const tableHeader = [
     width: "55",
   },
   {
-    label: "活动标题",
-    prop: "title",
+    label: "活动类型名称",
+    prop: "name",
     type: "string",
   },
   {
-    label: "最低消费金额",
-    prop: "minimum_spend",
-    type: "number",
+    label: "所属店铺",
+    prop: "shop_id",
+    type: "String",
   },
   {
-    label: "折扣百分比",
-    prop: "discount",
-    type: "number",
-  },
-  {
-    label: "活动描述",
+    label: "活动类型描述",
     prop: "description",
     type: "text",
   },
   {
-    label: "激活状态",
-    prop: "is_active",
+    label: "状态",
+    prop: "status",
     type: "tags",
   },
   {
-    label: "活动开始时间",
-    prop: "start_date",
+    label: "创建时间",
+    prop: "createTime",
     type: "string",
   },
   {
-    label: "活动结束时间",
-    prop: "end_date",
+    label: "更新时间",
+    prop: "updateTime",
     type: "string",
   },
   {
@@ -186,17 +168,14 @@ const tableHeader = [
     type: "operation",
   },
 ]; 
-let promotion = ref<Promotion>({
-  promotion_id: "",
+let promotionType = ref<PromotionType>({
+  type_id: "",
   shop_id: "",
-  title: "",
-  minimum_spend: 0,
-  discount: 0,
+  name: "",
   description: "",
   status: true,
-  start_date: "",
-  end_date: "",
-  product_id:[]
+  createTime:"",
+  updateTime: ""
 })
 
 
@@ -206,7 +185,7 @@ const selectData = ref<any>([]);
 // 数据分页配置对象
 const page = reactive({
   pageNum: 1,
-  pageSize: 10,
+  pageSize: 15,
   currentPage: 1,
   total: 0,
 }); 
@@ -228,11 +207,11 @@ const getData = async () => {
   // console.log(JSON.parse(localStorage.getItem("currentShop") || "{}"));
   
   await axios
-    .get("/promotion/getPromotionPagination", {
+    .get("/promotionType/getPromotionTypePagination", {
       params: {
         pageNum: page.pageNum,
         pageSize: page.pageSize,
-        promotion: JSON.stringify(requestJSON),
+        promotionType: JSON.stringify(requestJSON),
       },
     })
     .then(async (res: AxiosResponse<any>) => {
@@ -251,19 +230,19 @@ const getData = async () => {
 
 const childRef: Ref<any> = ref(null);
 // 对话框数据更新
-const updateDialog = (formData: Promotion | undefined, flag?: boolean) => {
+const updateDialog = (formData: PromotionType | undefined, flag?: boolean) => {
   if (flag !== undefined) {
     dialogVisible.value = flag;
   }
   if (formData !== undefined) {
-    promotion.value = { ...formData } as Promotion;
+    promotionType.value = { ...formData } as PromotionType;
   }
 };
 
 // 搜索栏数据更新
-const updateQuery = (formData?: Promotion, flag?: boolean, type?: string) => {
+const updateQuery = (formData?: PromotionType, flag?: boolean, type?: string) => {
   if (formData !== undefined) {
-    promotion.value = { ...formData } as Promotion;
+    promotionType.value = { ...formData } as PromotionType;
   }
   if (flag !== undefined) {
     dialogVisible.value = flag;
@@ -307,21 +286,21 @@ const reSet = async () => {
 };
 
 // 模拟的事件处理函数
-const editRow = (index: number, row: Promotion) => {
+const editRow = (index: number, row: PromotionType) => {
   console.log("编辑行:", index, JSON.parse(JSON.stringify(row)));
   dialogVisible.value = true;
   dialogType.value = "edit";
-  promotion.value = { ...row };
+  promotionType.value = { ...row };
 };
 
-const deleteRow = async (index: number, row: Promotion) => {
+const deleteRow = async (index: number, row: PromotionType) => {
   console.log("删除行:", index, row);
   ElMessageBox.confirm("确认删除所选数据？(无法恢复！)", "删除警告", {
     type: "warning",
     icon: markRaw(Delete),
   })
     .then(async () => {
-      await delPromotion([row.promotion_id]);
+      await delPromotion([row.type_id]);
     })
     .catch(() => {
       // catch error
@@ -349,7 +328,7 @@ const delData = async () => {
   })
     .then(async () => {
       // 获取选中项的id
-      const selectId = selectData.value.map((item: { promotion_id: any; }) => item.promotion_id)
+      const selectId = selectData.value.map((item: { type_id: any; }) => item.type_id)
       // 删除数据
       await delPromotion(selectId);
       selectData.value = [];
@@ -362,7 +341,7 @@ const delData = async () => {
 // 删除数据
   const delPromotion = async (list: any) => {
   await axios
-    .post("/promotion/delPromotion", list)
+    .post("/promotionType/delPromotionType", list)
     .then((res) => {
       if (res.data.code == 200) {
         ElMessage.success("删除活动成功！");
