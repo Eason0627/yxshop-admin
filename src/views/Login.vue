@@ -51,22 +51,24 @@
           >
         </div>
         <div class="mb-4">
-          <button
-            type="submit"
-            class="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          <el-button
+            type="primary"
+            style="height: 40px"
+            class="w-full bg-blue-500 text-white rounded hover:bg-blue-600"
+            :loading="loading"
             @click.prevent="handleLogin"
+            >登录</el-button
           >
-            登录
-          </button>
         </div>
         <div class="mb-4">
-          <button
-            type="button"
+          <el-button
+            type="default"
+            style="height: 40px"
             class="w-full p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
             @click="switchForm('register')"
           >
             没有账号？去注册
-          </button>
+          </el-button>
         </div>
       </form>
 
@@ -123,40 +125,45 @@
               id="verify-code"
               v-model="loginForm.verificationCode"
               placeholder="请输入验证码"
-              class="w-8/12 px-2 py-1.5 border rounded"
+              class="w-8/12 px-2 py-1.5 mr-2 border rounded"
             />
-            <button
+            <el-button
+              type="primary"
+              style="height: 30px"
               class="ml-auto px-2 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
               @click.prevent="sendVerificationEmail"
             >
               {{ buttonText }}
-            </button>
+            </el-button>
           </div>
           <div class="mb-4">
-            <button
+            <el-button
               v-if="form_type === 'register'"
-              type="button"
+              type="primary"
+              style="height: 40px"
               class="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               @click="handleRegister"
             >
               注册
-            </button>
-            <button
+            </el-button>
+            <el-button
               v-else
-              type="button"
+              type="primary"
+              style="height: 40px"
               class="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               @click="handleForgetPsd"
             >
               忘记密码
-            </button>
+            </el-button>
           </div>
-          <button
-            type="button"
+          <el-button
+            type="default"
+            style="height: 40px"
             class="w-full p-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
             @click="switchForm('login')"
           >
             取消
-          </button>
+          </el-button>
         </form>
       </transition>
     </div>
@@ -203,7 +210,7 @@ const switchForm = (form: "login" | "register" | "forgetPsd") => {
   loginForm.confirmPassword = "";
   loginForm.verificationCode = "";
 };
-
+const loading = ref(false);
 // 定义按钮的文本
 const buttonText = ref("发送验证码");
 // 标记是否正在倒计时
@@ -227,6 +234,7 @@ const handleLogin = async () => {
       router.push("/home");
       return PopUp.getInstance(Type.alert, "已经登录，请勿重复登录").show();
     }
+    loading.value = true;
     res = (await axios
       .post("/login", {
         username: loginForm.email,
@@ -235,6 +243,7 @@ const handleLogin = async () => {
       })
       .then((res: AxiosResponse) => {
         if (res.data.code === 200) {
+          loading.value = false;
           const user: User = res.data.data.user;
           const token: string = res.data.data.token;
           // 存储token
