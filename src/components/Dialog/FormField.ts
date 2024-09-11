@@ -11,6 +11,7 @@ export interface FormField<T> {
     | "radio";
   label: string;
   prop: keyof T;
+  show: boolean;
   tips?: string;
   placeholder?: string;
   rules?: Array<{
@@ -25,7 +26,6 @@ export interface FormField<T> {
   min?: number;
   options?: { label: string; value: any; disabled?: boolean; tips?: string }[];
   loading?: boolean;
-  show?: boolean;
   multiple?: boolean;
   remote?: boolean;
   uploadConfig?: any;

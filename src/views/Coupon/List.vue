@@ -91,11 +91,7 @@ const formFields = ref<FormField<any>[]>([
     loading: false,
     show: true,
     rules: [{ required: true, message: "请选择优惠券类型", trigger: "blur" }],
-    options: [
-      { label: "满减券", value: 1 },
-      { label: "折扣券", value: 2 },
-      // 其他优惠券类型...
-    ],
+    options: [],
     onFocus: async function (_value: any, field: FormField<any>) {
       field.loading = true;
       await axios
@@ -267,7 +263,7 @@ const formFields = ref<FormField<any>[]>([
     label: "适用用户",
     prop: "user_id",
     placeholder: "请输入适用用户",
-    show: false,
+    show: true,
     rules: [{ required: false, message: "请输入适用用户", trigger: "blur" }],
     options: [],
     fetchOptions: function (query) {
@@ -474,11 +470,17 @@ const updateSelection = (selectedRows: Coupon[]) => {
   selectList.value = selectedRows;
 };
 
-// 数据上传
-const handleFormSubmit = async (data: Coupon) => {
+// 校验上传的数据
+const validateUploadData = async (data: any) => {
+  // 最低消费金额为空设为0
   if (!data.min_purchase_amt) {
     data.min_purchase_amt = 0;
   }
+};
+
+// 数据上传
+const handleFormSubmit = async (data: Coupon) => {
+  validateUploadData(data);
   try {
     if (dialogType.value === "add") {
       await axios.post("/coupon", data).then(async (res) => {
@@ -542,8 +544,6 @@ const getTableData = async (time?: string) => {
         item.end_date = item.end_date.split(" ")[0];
       });
       tableData.value = response.data.data.records;
-      console.log(tableData.value);
-
       page.total = response.data.data.total;
     } else {
       tableData.value = [];

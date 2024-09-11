@@ -72,6 +72,7 @@ const formFields: FormField<any>[] = [
     type: "text",
     label: "优惠券类型名称",
     prop: "type_name",
+    show: true,
     placeholder: "请输入优惠券类型名称",
     rules: [
       { required: true, message: "请输入优惠券类型名称", trigger: "blur" },
@@ -87,6 +88,7 @@ const formFields: FormField<any>[] = [
     type: "textarea",
     label: "优惠券类型描述",
     prop: "description",
+    show: true,
     placeholder: "请输入优惠券类型描述",
   },
 ];
