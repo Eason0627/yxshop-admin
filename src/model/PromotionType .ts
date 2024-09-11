@@ -1,11 +1,11 @@
 export default interface PromotionType {
-  type_id?: number | null;           // 活动类型唯一标识符
-  name?: Name;                       // 活动类型的名称: 打折、买一送一、满额减免、百分比折扣、购物赠品
-  shop_id?: number | null;           // 商店ID
+  type_id?: number|string | null;           // 活动类型唯一标识符
+  name?: Name|string;                       // 活动类型的名称: 打折、买一送一、满额减免、百分比折扣、购物赠品
+  shop_id?: number | string | null;           // 商店ID
   description?: string;              // 描述活动类型的详细信息
   status?: boolean;                  // 活动类型的状态
-  create_time?: Date;                // 创建时间
-  update_time?: Date;                // 更新时间
+  createTime?: Date|string;                // 创建时间
+  updateTime?: Date|string;                // 更新时间
 }
 
 // 活动类型名称枚举

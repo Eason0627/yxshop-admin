@@ -52,16 +52,16 @@
                 style="width: 5rem; height: 5rem"
                 :src="props.form.product_info.main_image"
               />
-              <el-button
+              <!-- <el-button
                 size="small"
                 type="danger"
                 :icon="Delete"
                 class="mt-[3px]"
                 @click="deleteMainImage"
-              />
+              /> -->
             </div>
             <FileUploader
-              v-else
+            
               :action="uploadUrl"
               :multiple="true"
               :limit="1"
@@ -97,17 +97,17 @@
             </template>
             <div
               v-if="props.form.product_info.additional_images"
-              v-for="(item, index) in props.form.product_info.additional_images"
+              v-for="(item) in props.form.product_info.additional_images"
               class="flex flex-col items-center mx-1"
             >
               <el-image style="width: 5rem; height: 5rem" :src="item" />
-              <el-button
+              <!-- <el-button
                 size="small"
                 type="danger"
                 :icon="Delete"
                 class="mt-[3px]"
                 @click="deleteCarouselImage(index)"
-              />
+              /> -->
             </div>
             <FileUploader
               :action="uploadUrl"
@@ -145,17 +145,17 @@
             </template>
             <div
               v-if="props.form.product_info.details_images"
-              v-for="(item, index) in props.form.product_info.details_images"
+              v-for="(item) in props.form.product_info.details_images"
               class="flex flex-col items-center mx-1"
             >
               <el-image style="width: 5rem; height: 5rem" :src="item" />
-              <el-button
+              <!-- <el-button
                 size="small"
                 type="danger"
                 :icon="Delete"
                 class="mt-[3px]"
                 @click="deleteDetailsImage(index)"
-              />
+              /> -->
             </div>
             <FileUploader
               :action="uploadUrl"
@@ -198,11 +198,12 @@
 
         <!-- 下拉选择项 -->
         <div class="item-group grid grid-cols-3 gap-4 px-8">
-          <el-form-item label="品牌名称" prop="product_info.brand_id" required>
+          <el-form-item label="品牌名称" prop="product_info.brand_id" required >
             <!-- <el-input v-model.number="form.product_info.brand_id" placeholder="请输入品牌ID" /> -->
             <el-select
               v-model="form.product_info.brand_id"
               placeholder="选择品牌"
+              :focus="handleBrand()"
             >
               <el-option
                 v-for="brand in brandList"
@@ -230,10 +231,12 @@
             label="商品分类"
             prop="product_info.category_id"
             required
+            :focus="handleCategory()"
           >
             <el-select
               v-model="form.product_info.category_id"
               placeholder="选择分类"
+              
             >
               <el-option
                 v-for="category in categoryList"
@@ -490,18 +493,22 @@
 
 <script setup lang="ts">
 import { ElInput, ElMessage } from "element-plus";
-import { Delete } from "@element-plus/icons-vue";
+// import { Delete } from "@element-plus/icons-vue";
 import {
   ref,
   inject,
   defineProps,
   defineEmits,
   nextTick,
-  onMounted,
+  // onMounted,
   watchEffect,
 } from "vue";
 import FileUploader from "@/components/upload/FileUploader.vue";
 import { Axios, AxiosResponse } from "axios";
+import Brand from "@/model/Brand";
+import Shop from "@/model/Shop";
+import Warehouse from "@/model/Warehouse";
+import Category from "@/model/Category";
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
@@ -538,6 +545,7 @@ const deleteDetailsImage = (index: any) => {
 
 // 响应式引用数组
 const brandList = ref<Brand[]>([]);
+// const brandList = ref([]);
 const shopList = ref<Shop[]>([]);
 const warehouseList = ref<Warehouse[]>([]);
 const categoryList = ref<Category[]>([]);
@@ -684,7 +692,7 @@ let fileToUpload: File | null = null;
 const uploadImage = async () => {
   //判断是否有图片
   const formData = new FormData();
-  formData.append("file", fileToUpload);
+  formData.append("file", fileToUpload as Blob);
   console.log(formData);
   await axios
     .post("/upload", formData, {
@@ -739,10 +747,20 @@ async function submitChanges() {
     });
 }
 
+interface Item {
+warehouse_name: any;
+warehouse_id: any;
+  brand_id?: number;
+  brand_name?: string;
+  shop_id?: number;
+  shop_name?: string;
+}
 //请求品牌、仓库、店铺
 const handleBrand = async () => {
+  // console.log(brandList)
+  if(!brandList){return}
   const user = JSON.parse(localStorage.getItem("user") || "");
-
+  console.log("开始获取店铺品牌")
   await axios
     .get(`/products/commentsByUserId/${user.id}`)
     .then((response: AxiosResponse) => {
@@ -802,6 +820,9 @@ const handleBrand = async () => {
 };
 //请求分类id列表
 const handleCategory = async () => {
+  // console.log(categoryList);
+  
+  if(!categoryList){return}
   await axios
     .get("/category", {
       params: {

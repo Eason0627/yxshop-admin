@@ -127,7 +127,7 @@ const routes = [
       {
         path: "/promotion/category",
         name: "活动分类",
-        component: () => import("@/views/Promotion/Category.vue"),
+        component: () => import("@/views/Promotion/Category/List.vue"),
       },
       {
         path: "/promotion/effect",
