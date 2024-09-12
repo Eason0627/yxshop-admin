@@ -500,9 +500,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, nextTick, Ref } from "vue";
+import { ref, reactive, inject, onMounted, nextTick } from "vue";
 import { Axios, AxiosResponse } from "axios";
-import { ElMessage, ElInput, FormInstance, ElLoading } from "element-plus";
+import { ElMessage, ElInput, FormInstance } from "element-plus";
 import FileUploader from "@/components/upload/FileUploader.vue";
 
 // 获取 axios
@@ -864,11 +864,12 @@ function uploadValue(file?: any, fileList?: any[], props?: string) {
 function uploadChange(file?: any, fileList?: any[], props?: string) {
   console.log("上传中", file, fileList, props);
   if (props === "main") {
-    form.product_info.main_image = file;
+    
+    form.value.product_info.main_image = file;
   } else if (props === "carousel") {
-    form.product_info.additional_images = fileList as string[];
+    form.value.product_info.additional_images = fileList as string[];
   } else if (props === "details") {
-    form.product_info.details_images = fileList as string[];
+    form.value.product_info.details_images = fileList as string[];
   }
 }
 

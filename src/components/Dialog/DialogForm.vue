@@ -227,7 +227,6 @@ const groupFields = computed(() => {
 
 // 验证表单
 function submitForm() {
-  console.log(formData.value);
   formRef.value?.validate((valid) => {
     if (valid) {
       emit("submit", formData.value);
