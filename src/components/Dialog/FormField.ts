@@ -25,7 +25,13 @@ export interface FormField<T> {
   }>;
   max?: number;
   min?: number;
-  options?: { label: string; value: any; disabled?: boolean; tips?: string }[];
+  options?: {
+    label: string;
+    value: any;
+    id?: string;
+    disabled?: boolean;
+    tips?: string;
+  }[];
   loading?: boolean;
   multiple?: boolean;
   remote?: boolean;

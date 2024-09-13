@@ -39,8 +39,8 @@ interface Coupon {
   type_name?: string;
   discount_value: number;
   discount_point_value: number;
-  start_date: string;
-  end_date: string;
+  start_date: string | Date;
+  end_date: string | Date;
   usage_limit: number;
   used_count: number;
   coupon_status: number;
@@ -85,7 +85,7 @@ const formFields = ref<FormField<any>[]>([
   {
     type: "select",
     label: "优惠券类型",
-    prop: "type_id",
+    prop: "type_name",
     placeholder: "请选择优惠券类型",
     group: "基本信息", // 添加 group 属性
     loading: false,
@@ -101,7 +101,8 @@ const formFields = ref<FormField<any>[]>([
           field.options = list.map((item: any) => {
             return {
               label: item.type_name,
-              value: item.type_id,
+              value: item.type_name,
+              id: item.type_id,
             };
           });
         })
@@ -233,10 +234,7 @@ const formFields = ref<FormField<any>[]>([
     show: true,
     group: "商品与用户限制", // 添加 group 属性
     rules: [{ required: false, message: "请选择适用商品", trigger: "blur" }],
-    options: [
-      { label: "商品A", value: "productA" },
-      { label: "商品B", value: "productB" },
-    ],
+    options: [],
     onFocus: async function (_value: any, field: FormField<any>) {
       await axios
         .get("/products/getProductPagination", {
@@ -388,7 +386,8 @@ const page: PageInfo = reactive({
 
 // 勾选数据
 const selectList = ref<Coupon[]>([]);
-
+// 点击编辑的数据
+const editData = ref<Coupon>();
 // 构造查询对象
 const queryParams = ref<SearchParams>({});
 const loading = ref(false); // 加载状态
@@ -398,6 +397,7 @@ const editRow = (row: Coupon) => {
   console.log("编辑行:", row);
   dialogType.value = "edit";
   dialogVisible.value = true;
+  editData.value = { ...row };
 };
 
 // 删除行的方法
@@ -466,36 +466,26 @@ const reSet = async () => {
 
 // 监听选中数据更新
 const updateSelection = (selectedRows: Coupon[]) => {
-  console.log("选中数据更新:", selectedRows);
   selectList.value = selectedRows;
 };
 
-// 校验上传的数据
-const validateUploadData = async (data: any) => {
+// 数据上传
+const handleFormSubmit = async (data: Coupon) => {
   // 最低消费金额为空设为0
   if (!data.min_purchase_amt) {
     data.min_purchase_amt = 0;
   }
-};
-
-//格式化日期函数
-function formatDate(dateStr: string | number | Date) {
-      // 假设输入格式为 YYYY-MM-DDTHH:mm:ss.SSSZ
-      const date = new Date(dateStr);
-      const year = date.getUTCFullYear();
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(date.getUTCDate()).padStart(2, '0');
-      const hours = String(date.getUTCHours()).padStart(2, '0');
-      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-
-      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-    }
-// 数据上传
-const handleFormSubmit = async (data: Coupon) => {
-  data.start_date = formatDate(data.start_date);
-  data.end_date = formatDate(data.end_date);
-  validateUploadData(data);
+  // 获取type_id
+  if (!data.type_id) {
+    let option = formFields.value[0].options?.find((item) => {
+      return item.value === data.type_name;
+    });
+    data.type_id = option?.id as string;
+  }
+  // 比较原始数据与新数据
+  const hasChanges = compareObjects(editData.value, data);
+  // 将适用商品数组转换为字符串
+  data.applicable_items = JSON.stringify(data.applicable_items);
   try {
     if (dialogType.value === "add") {
       console.log("新增优惠券数据:", data);
@@ -509,7 +499,10 @@ const handleFormSubmit = async (data: Coupon) => {
         }
       });
     } else if (dialogType.value === "edit") {
-      console.log("修改优惠券数据:", data);
+      if (hasChanges) return ElMessage.warning("数据未发生改变");
+      data.start_date = new Date(data.start_date);
+      data.end_date = new Date(data.end_date);
+      delete data.type_name;
       await axios.put("/coupon", data).then(async (res) => {
         if (res.data.code === 200) {
           ElMessage.success("更新完成");
@@ -524,9 +517,9 @@ const handleFormSubmit = async (data: Coupon) => {
   }
 };
 
-// 获取数据
 const getTableData = async (time?: string) => {
   loading.value = true;
+  tableData.value = [];
   let params: {
     coupon: string;
     pageNum: number;
@@ -550,27 +543,43 @@ const getTableData = async (time?: string) => {
 
   try {
     const response = await axios.get("/coupon", { params });
+
     if (response.data.code === 200) {
-      response.data.data.records.forEach(async (item: Coupon) => {
-        await axios.get(`/coupon-types/${item.type_id}`).then((res) => {
-          if (item.min_purchase_amt) {
+      const records = response.data.data.records;
+
+      // 使用 Promise.all 等待所有异步请求完成
+      await Promise.all(
+        records.map(async (item: Coupon) => {
+          try {
+            const res = await axios.get(`/coupon-types/${item.type_id}`);
             item.type_name = res.data.data.type_name;
-          } else {
-            item.type_name = res.data.data.type_name + "(无门槛)";
+          } catch (e) {
+            // 处理单个请求的错误
+            console.error(
+              `Failed to fetch type_name for type_id ${item.type_id}:`,
+              e
+            );
+            item.type_name = ""; // 或者设置一个默认值
           }
-        });
-        item.start_date = item.start_date.split(" ")[0];
-        item.end_date = item.end_date.split(" ")[0];
-      });
-      tableData.value = response.data.data.records;
+
+          // 格式化日期
+          item.start_date = item.start_date.toString().split("T")[0];
+          item.end_date = item.end_date.toString().split("T")[0];
+          // 将applicable_items 字符串转换为数组
+          item.applicable_items = JSON.parse(item.applicable_items);
+        })
+      );
+
+      tableData.value = records;
       page.total = response.data.data.total;
+      loading.value = false;
     } else {
       tableData.value = [];
       page.total = 0;
+      loading.value = false;
     }
   } catch (e: any) {
     ElMessage.error("获取数据失败 ");
-  } finally {
     loading.value = false;
   }
 };
@@ -578,4 +587,22 @@ const getTableData = async (time?: string) => {
 onBeforeMount(async () => {
   await getTableData();
 });
+
+// 比较两个对象是否相同
+function compareObjects(obj1: any, obj2: any): boolean {
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    if (obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 </script>

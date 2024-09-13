@@ -948,7 +948,9 @@ function uploadChange( file?: any, fileList?: any[], props?: string) {
     form.value.product_info.main_image = file;
   } else if (props === "carousel") {
     form.value.product_info.additional_images = fileList as string[];
+    form.value.product_info.additional_images = fileList as string[];
   } else if (props === "details") {
+    form.value.product_info.details_images = fileList as string[];
     form.value.product_info.details_images = fileList as string[];
   }
 }
