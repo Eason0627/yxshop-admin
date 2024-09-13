@@ -36,7 +36,6 @@
                 prop="product_info.main_image"
                 class="col-span-1"
                 label-width="120px"
-                required
               >
                 <template #label>
                   <div class="label flex items-center">
@@ -70,7 +69,7 @@
                 prop="product_info.additional_images"
                 class="col-span-1"
                 label-width="120px"
-                required
+                
               >
                 <template #label>
                   <div class="label flex items-center">
@@ -104,7 +103,7 @@
                 prop="product_info.details_images"
                 class="col-span-1"
                 label-width="120px"
-                required
+                
               >
                 <template #label>
                   <div class="label flex items-center">
@@ -168,10 +167,10 @@
                 prop="product_info.brand_id"
                 required
               >
-                <!-- <el-input v-model.number="form.product_info.brand_id" placeholder="请输入品牌ID" /> -->
                 <el-select
                   v-model="form.product_info.brand_id"
                   placeholder="请选择品牌"
+                  @focus="getBrandList()"
                 >
                   <el-option
                     v-for="brand in brandList"
@@ -186,10 +185,10 @@
                 prop="product_info.shop_id"
                 required
               >
-                <!-- <el-input v-model.number="form.product_info.shop_id" placeholder="请输入店铺ID" /> -->
                 <el-select
                   v-model="form.product_info.shop_id"
                   placeholder="选择店铺"
+                  @focus="getBrandList()"
                 >
                   <el-option
                     v-for="shop in shopList"
@@ -207,6 +206,7 @@
                 <el-select
                   v-model="form.product_info.category_id"
                   placeholder="选择分类"
+                   @focus="handleCategory()"
                 >
                   <el-option
                     v-for="category in categoryList"
@@ -257,7 +257,6 @@
                     </el-tooltip>
                   </div>
                 </template>
-                <!-- <el-input v-model="form.product_info.tags" placeholder="请输入标签" /> -->
                 <div class="flex gap-2">
                   <el-tag
                     v-for="tag in dynamicTags"
@@ -427,10 +426,10 @@
                 prop="inventory.warehouse_id"
                 required
               >
-                <!-- <el-input v-model.number="form.inventory.warehouse_id" placeholder="请输入仓库ID" /> -->
                 <el-select
-                  v-model="form.product_info.warehouse_id"
+                  v-model="form.inventory.warehouse_id"
                   placeholder="选择仓库"
+                  @focus="getBrandList()"
                 >
                   <el-option
                     v-for="warehouse in warehouseList"
@@ -500,64 +499,58 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, nextTick, Ref } from "vue";
+import { ref, reactive, inject, onMounted, nextTick,  } from "vue";
 import { Axios, AxiosResponse } from "axios";
-import { ElMessage, ElInput, FormInstance, ElLoading } from "element-plus";
+import { ElMessage, ElInput, FormInstance, } from "element-plus";
 import FileUploader from "@/components/upload/FileUploader.vue";
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
 
 const uploadUrl = "http://localhost:8080/upload";
+
 // 数据模型
-interface ProductInfo {
-  warehouse_id: unknown;
-  product_name: string;
-  description: string;
-  brand_id: string;
-  shop_id: string;
-  origin: string;
-  material: string;
-  size: string;
-  color: string;
-  weight: number;
-  packaging_details: string;
-  warranty_info: string;
-  production_date: string;
-  expiration_date: string;
-  category_id: string;
-  main_image: string;
-  additional_images: string[];
-  details_images: string[];
-  tags: string[];
-}
-
-interface ProductSales {
-  price: number;
-  cost_price: number;
-  stock_quantity: number;
-  reorder_threshold: number;
-  sold_quantity: number;
-  review_count: number;
-  average_rating: number;
-  promotion_details: string;
-  shipping_fee: number;
-}
-
-interface Inventory {
-  warehouse_id: number;
-  stock_quantity: number;
-  safety_stock: number;
-  last_restock_date: string;
-  restock_threshold: number;
-}
-
-interface FormModel {
-  [x: string]: any;
-  product_info: ProductInfo;
-  product_sales: ProductSales;
-  inventory: Inventory;
-}
+// interface FormModel {
+//   value: any;
+//   product_info: {
+//     product_name?: string;
+//     description?: string;
+//     brand_id?: string;
+//     shop_id?: string;
+//     origin?: string;
+//     material?: string;
+//     size?: string;
+//     color?: string;
+//     weight?: number;
+//     packaging_details?: string;
+//     warranty_info?: string;
+//     production_date?: string;
+//     expiration_date?: string;
+//     category_id?: string;
+//     main_image?: string;
+//     additional_images?: string[];
+//     details_images?: string[];
+//     tags?: string[];
+//   };
+//   product_sales: {
+//     price?: number;
+//     cost_price?: number;
+//     stock_quantity?: number;
+//     reorder_threshold?: number;
+//     sold_quantity?: number;
+//     review_count?: number;
+//     average_rating?: number;
+//     promotion_details?: string;
+//     shipping_fee?: number;
+//   };
+//   inventory: {
+//     warehouse_id?: string;
+//     stock_quantity?: number;
+//     safety_stock?: number;
+//     last_restock_date?: string;
+//     restock_threshold?: number;
+//   };
+// }
 
 // 定义品牌类型
 interface Brand {
@@ -590,7 +583,7 @@ interface Item {
   warehouse_id: string | null;
 }
 
-const form: FormModel = ref({
+const form = ref({
   product_info: {
     product_name: "huawei mate60 pro",
     description: "这款星辰X5 Pro 智能手机是一款旗舰级设备，旨在",
@@ -607,9 +600,9 @@ const form: FormModel = ref({
     expiration_date: "2024-08-16",
     category_id: 0,
     main_image: "",
-    additional_images: [],
-    details_images: [],
-    tags: ["手机", "数码"],
+    additional_images: [] as string[],
+    details_images: [] as string[],
+    tags: ["手机", "数码"] as string[],
   },
   product_sales: {
     price: 699,
@@ -641,17 +634,104 @@ const uploadDetailsRef = ref();
 const rules = reactive({
   "product_info.product_name": [
     { required: true, message: "请输入商品名称", trigger: "blur" },
+    // { pattern: /^[a-zA-Z0-9\s\-\_]+$/, message: "商品名称只能包含字母、数字和空格", trigger: "blur" }
   ],
   "product_info.description": [
     { required: true, message: "请输入描述", trigger: "blur" },
+    { maxLength: 500, message: "描述不能超过500个字符", trigger: "blur" }
   ],
   "product_info.brand_id": [
     { required: true, message: "请选择品牌", trigger: "blur" },
+    // { type: 'number', message: "品牌ID必须是数字", trigger: "blur" }
   ],
   "product_info.shop_id": [
     { required: true, message: "请选择店铺", trigger: "blur" },
+    // { type: 'number', message: "店铺ID必须是数字", trigger: "blur" }
   ],
-  // 添加更多验证规则...
+  "product_info.origin": [
+    { required: true, message: "请输入产地", trigger: "blur" },
+    // { pattern: /^中国$/, message: "产地必须是中国", trigger: "blur" }
+  ],
+  "product_info.material": [
+    { required: true, message: "请输入材质", trigger: "blur" },
+    // { type: 'number', message: "材质代码必须是数字", trigger: "blur" }
+  ],
+  "product_info.size": [
+    { required: true, message: "请输入尺寸", trigger: "blur" },
+    // { type: 'number', message: "尺寸必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "尺寸不能小于0", trigger: "blur" }
+  ],
+  "product_info.color": [
+    { required: true, message: "请输入颜色", trigger: "blur" }
+  ],
+  "product_info.weight": [
+    { required: true, message: "请输入重量", trigger: "blur" },
+    { type: 'number', message: "重量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "重量不能小于0", trigger: "blur" }
+  ],
+  "product_info.packaging_details": [
+    { required: true, message: "请输入包装详情", trigger: "blur" }
+  ],
+  "product_info.warranty_info": [
+    { required: true, message: "请输入保修信息", trigger: "blur" }
+  ],
+  "product_info.production_date": [
+    { required: true, message: "请输入生产日期", trigger: "blur" },
+    { type: 'date', message: "生产日期必须是有效的日期格式", trigger: "blur" },
+  ],
+  "product_info.expiration_date": [
+    { required: true, message: "请输入过期日期", trigger: "blur" },
+    { type: 'date', message: "过期日期必须是有效的日期格式", trigger: "blur" },
+    
+  ],
+  "product_info.category_id": [
+    { required: true, message: "请选择分类", trigger: "blur" },
+    // { type: 'number', message: "分类ID必须是数字", trigger: "blur" }
+  ],
+  "product_sales.price": [
+    { required: true, message: "请输入价格", trigger: "blur" },
+    { type: 'number', message: "价格必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "价格不能小于0", trigger: "blur" }
+  ],
+  "product_sales.cost_price": [
+    { required: true, message: "请输入成本价", trigger: "blur" },
+    { type: 'number', message: "成本价必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "成本价不能小于0", trigger: "blur" }
+  ],
+  "product_sales.stock_quantity": [
+    { required: true, message: "请输入库存数量", trigger: "blur" },
+    { type: 'number', message: "库存数量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "库存数量不能小于0", trigger: "blur" }
+  ],
+  "product_sales.reorder_threshold": [
+    { required: true, message: "请输入补货阈值", trigger: "blur" },
+    { type: 'number', message: "补货阈值必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "补货阈值不能小于0", trigger: "blur" }
+  ],
+  "product_sales.sold_quantity": [
+    { required: true, message: "请输入已售数量", trigger: "blur" },
+    { type: 'number', message: "已售数量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "已售数量不能小于0", trigger: "blur" }
+  ],
+  "product_sales.review_count": [
+    { required: true, message: "请输入评价数量", trigger: "blur" },
+    { type: 'number', message: "评价数量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "评价数量不能小于0", trigger: "blur" }
+  ],
+  "product_sales.average_rating": [
+    { required: true, message: "请输入平均评分", trigger: "blur" },
+    { type: 'number', message: "平均评分必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "平均评分不能小于0", trigger: "blur" },
+    // { maxValue: 5, message: "平均评分不能超过5", trigger: "blur" }
+  ],
+  "product_sales.promotion_details": [
+    { message: "请输入促销详情", trigger: "blur" }
+  ],
+  "product_sales.shipping_fee": [
+    { required: true, message: "请输入运费", trigger: "blur" },
+    { type: 'number', message: "运费必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "运费不能小于0", trigger: "blur" }
+  ]
 });
 
 // 响应式引用数组
@@ -689,7 +769,7 @@ const onConfirm = async () => {
 // 删除标签
 const handleClose = (tag: string) => {
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
-  form.product_info.tags = [...dynamicTags.value];
+  form.value.product_info.tags = [...dynamicTags.value];
   // console.log(form.product_info.tags)
 };
 
@@ -703,7 +783,7 @@ const showInput = () => {
 const handleInputConfirm = () => {
   if (inputValue.value) {
     dynamicTags.value.push(inputValue.value);
-    form.product_info.tags = [...dynamicTags.value];
+    form.value.product_info.tags = [...dynamicTags.value];
     // console.log(form.product_info.tags)
   }
   inputVisible.value = false;
@@ -716,6 +796,7 @@ const submitForm = async () => {
   try {
     // 验证表单
     if (!formRef.value) return;
+    console.log("表单数据"+form)
     const isValid = await formRef.value.validate();
     if (isValid) {
       const formData = new FormData();
@@ -740,8 +821,8 @@ const submitForm = async () => {
           }
         }
       });
-      formData.append("formParams", JSON.stringify(form));
-
+      formData.append("formParams", JSON.stringify(form.value));
+      console.log("发布商品数据："+formData);
       // 发送请求发布商品
       await axios
         .post("/products", formData, {
@@ -823,11 +904,11 @@ function uploadSuccess(
 ) {
   console.log("上传成功", response, file, fileList);
   if (props === "main") {
-    form.product_info.main_image = file;
+    form.value.product_info.main_image = file;
   } else if (props === "carousel") {
-    form.product_info.additional_images = fileList as string[];
+    form.value.product_info.additional_images = fileList as string[];
   } else if (props === "details") {
-    form.product_info.details_images = fileList as string[];
+    form.value.product_info.details_images = fileList as string[];
   }
 }
 
@@ -840,11 +921,11 @@ function uploadError(
 ) {
   console.error("上传失败", error, file, fileList);
   if (props === "main") {
-    form.product_info.main_image = file;
+    form.value.product_info.main_image = file;
   } else if (props === "carousel") {
-    form.product_info.additional_images = fileList as string[];
+    form.value.product_info.additional_images = fileList as string[];
   } else if (props === "details") {
-    form.product_info.details_images = fileList as string[];
+    form.value.product_info.details_images = fileList as string[];
   }
 }
 
@@ -852,47 +933,47 @@ function uploadError(
 function uploadValue(file?: any, fileList?: any[], props?: string) {
   console.log("删除文件", file, fileList);
   if (props === "main") {
-    form.product_info.main_image = file;
+    form.value.product_info.main_image = file;
   } else if (props === "carousel") {
-    form.product_info.additional_images = fileList as string[];
+    form.value.product_info.additional_images = fileList as string[];
   } else if (props === "details") {
-    form.product_info.details_images = fileList as string[];
+    form.value.product_info.details_images = fileList as string[];
   }
 }
 
 // 文件上传中
-function uploadChange(file?: any, fileList?: any[], props?: string) {
+function uploadChange( file?: any, fileList?: any[], props?: string) {
   console.log("上传中", file, fileList, props);
   if (props === "main") {
-    form.product_info.main_image = file;
+    form.value.product_info.main_image = file;
   } else if (props === "carousel") {
-    form.product_info.additional_images = fileList as string[];
+    form.value.product_info.additional_images = fileList as string[];
   } else if (props === "details") {
-    form.product_info.details_images = fileList as string[];
+    form.value.product_info.details_images = fileList as string[];
   }
 }
+
 
 // 获取当前用户已签约的品牌
 const getBrandList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
-
   await axios
-    .get(`/products/commentsbyuserid/${user.id}`)
+    .get(`/products/commentsByUserId/${user.id}`)
     .then((response: AxiosResponse) => {
       const Data: Item[] = response.data.data;
       // console.log(Data);
       // 去重函数
-      const removeDuplicates = <T>(arr: T[], key: keyof T): T[] => {
-        const seen = new Set<string>();
-        return arr.filter((item) => {
-          const value = item[key];
-          if (value && !seen.has(value)) {
-            seen.add(value);
-            return true;
-          }
-          return false;
-        });
-      };
+      const removeDuplicates = <T, K extends keyof T>(arr: T[], key: K): T[] => {
+      const seen = new Map<T[K], T>();
+      return arr.filter(item => {
+        const value = item[key];
+        if (!seen.has(value as T[K])) {
+          seen.set(value as T[K], item);
+          return true;
+        }
+        return false;
+      }).map(item => item);
+    };
       // 处理去重品牌
       const brandListData: Brand[] = removeDuplicates(
         Data.filter((item) => item.brand_name && item.brand_id).map((item) => ({
@@ -947,6 +1028,20 @@ const handleCategory = () => {
       console.error(error);
     });
 };
+
+//获取促销详情
+//  const getPromotionDetail = async () => {
+//   await axios
+//     .get(`/promotion/${promotion_id}`)
+//     .then((response: AxiosResponse) => {
+//       const Data: PromotionDetail = response.data.data;
+//       promotionDetail.value = Data;
+//       // console.log(promotionDetail.value)
+//     })
+//     .catch((error: any) => {
+//       console.error(error);
+//     });
+// };
 
 // 初始化表单数据
 onMounted(() => {

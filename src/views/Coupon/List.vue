@@ -147,7 +147,7 @@ const formFields = ref<FormField<any>[]>([
     ],
   },
   {
-    type: "datepicker",
+    type: "datetime",
     label: "有效时间",
     prop: "start_date",
     placeholder: "请选择开始时间",
@@ -156,7 +156,7 @@ const formFields = ref<FormField<any>[]>([
     group: "使用规则", // 添加 group 属性
   },
   {
-    type: "datepicker",
+    type: "datetime",
     label: "过期时间",
     prop: "end_date",
     placeholder: "请选择结束时间",
@@ -478,11 +478,29 @@ const validateUploadData = async (data: any) => {
   }
 };
 
+//格式化日期函数
+function formatDate(dateStr: string | number | Date) {
+      // 假设输入格式为 YYYY-MM-DDTHH:mm:ss.SSSZ
+      const date = new Date(dateStr);
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    }
 // 数据上传
 const handleFormSubmit = async (data: Coupon) => {
+  data.start_date = formatDate(data.start_date);
+  data.end_date = formatDate(data.end_date);
   validateUploadData(data);
   try {
     if (dialogType.value === "add") {
+      console.log("新增优惠券数据:", data);
+      console.log( data.start_date);
+      
       await axios.post("/coupon", data).then(async (res) => {
         if (res.data.code === 200) {
           ElMessage.success("添加成功");
@@ -491,6 +509,7 @@ const handleFormSubmit = async (data: Coupon) => {
         }
       });
     } else if (dialogType.value === "edit") {
+      console.log("修改优惠券数据:", data);
       await axios.put("/coupon", data).then(async (res) => {
         if (res.data.code === 200) {
           ElMessage.success("更新完成");

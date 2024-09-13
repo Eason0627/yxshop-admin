@@ -281,7 +281,7 @@ async function onConfirm(FormRef: FormInstance | undefined) {
         });
       } else if (dialogType.value == "edit") {
         // 判断图片是否更改了 (是否含有http前缀)
-        if (shop.value?.shop_image.indexOf("http") == -1) {
+        if (shop.value && shop.value.shop_image && shop.value.shop_image.indexOf("http") == -1) {
           // 将原base64图片转为 file对象
           const file = base64ToFile(shopImage.value, "shop.jpg");
           // 获取在线链接

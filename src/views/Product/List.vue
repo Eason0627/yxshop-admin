@@ -196,7 +196,11 @@
     </div>
 
     <!-- 修改弹窗 -->
-    <UpdateDialog :form :dialogVisible @update:Visible="updateVisible"> </UpdateDialog>
+    <UpdateDialog 
+      :form  
+      :dialogVisible 
+      @update:Visible="updateVisible"> 
+    </UpdateDialog>
   </div>
 </template>
 
@@ -209,6 +213,7 @@ import { ElMessage, ElMessageBox, ElNotification, ElTable } from "element-plus";
 import { Delete, InfoFilled } from "@element-plus/icons-vue";
 import { userShopStore } from "@/store/index";
 import Product from "@/model/Product";
+import form from "element-plus/es/components/form/index.mjs";
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
@@ -222,99 +227,121 @@ const indexData: any = ref("");
 const rowData: any = ref("");
 
 //定义修改表单对象
-let form = reactive({
-  product_info: {
-    product_id: "",
-    product_name: "",
-    description: "这款星辰X5 Pro 智能手机是一款旗舰级设备，旨在",
-    brand_id: 2,
-    brand_name: "华为",
-    shop_id: 1813922145265389568,
-    shop_name: "12",
-    origin: "中国",
-    material: "556",
-    size: "6.7",
-    color: "黑色",
-    weight: 255,
-    packaging_details: "三无产品",
-    warranty_info: "5年质保",
-    production_date: "2024-08-14",
-    expiration_date: "2024-08-16",
-    category_id: 0,
-    category_name: "手机",
-    main_image: "",
-    additional_images: [],
-    details_images: [],
-    tags: ["手机", "数码"],
-  },
-  product_sales: {
-    price: 699, //售价
-    cost_price: 52, //成本价
-    stock_quantity: 4500, //库存
-    reorder_threshold: 0, //在订购点
-    promotion_details: "满500减100元",
-    shipping_fee: 10,
-    sales_status: "",
-  },
-  inventory: {
-    warehouse_id: 1816111338636840960,
-    warehouse_name: "1",
-    stock_quantity: 45000,
-    safety_stock: 5000,
-    last_restock_date: "", //上次捕获日期
-    restock_threshold: 400, //捕获缺乏值
-  },
-});
+interface ProductData {
+  product_id: number;
+  product_name: string;
+  description: string;
+  brand_id: number;
+  brand_name: string;
+  shop_id: number;
+  shop_name: string;
+  origin: string;
+  material: string;
+  size: string;
+  color: string;
+  weight: number;
+  packaging_details: string;
+  warranty_info: string;
+  production_date: Date;
+  expiration_date: Date;
+  category_id: number;
+  category_name: string;
+  main_image: string;
+  additional_images: string;
+  details_images: string;
+  tags: string;
+  price: number;
+  cost_price: number;
+  stock_quantity: number;
+  reorder_threshold: number;
+  promotion_details: string;
+  shipping_fee: number;
+  sales_status: string;
+  warehouse_id: number;
+  warehouse_name: string;
+  safety_stock: number;
+  last_restock_date: Date;
+  restock_threshold: number;
+}
+
+interface Form {
+  product_info: Partial<ProductData>;
+  product_sales: Partial<ProductData>;
+  inventory: Partial<ProductData>;
+}
+
+const mapFields = {
+  product_info: [
+    'product_id',
+    'product_name',
+    'description',
+    'brand_id',
+    'brand_name',
+    'shop_id',
+    'shop_name',
+    'origin',
+    'material',
+    'size',
+    'color',
+    'weight',
+    'packaging_details',
+    'warranty_info',
+    'production_date',
+    'expiration_date',
+    'category_id',
+    'category_name',
+    'main_image',
+    'additional_images',
+    'details_images',
+    'tags'
+  ],
+  product_sales: [
+    'price',
+    'cost_price',
+    'stock_quantity',
+    'reorder_threshold',
+    'promotion_details',
+    'shipping_fee',
+    'sales_status'
+  ],
+  inventory: [
+    'warehouse_id',
+    'warehouse_name',
+    'safety_stock',
+    'last_restock_date',
+    'restock_threshold'
+  ]
+};
 //修改弹窗以及获取商品信息
 function editRow(index: any, row: any) {
   dialogVisible.value = !dialogVisible.value;
   indexData.value = index;
   rowData.value = row;
-  axios
-    .get(`/products/${rowData.value.product_id}`)
-    .then((response: AxiosResponse) => {
-      // console.log(typeof response.data.data.product_id)
-      const Data = response.data.data;
-      // console.log(Data)
-      form.product_info.product_id = Data.product_id;
-      form.product_info.product_name = Data.product_name;
-      form.product_info.description = Data.description;
-      form.product_info.brand_id = Data.brand_id;
-      form.product_info.brand_name = Data.brand_name;
-      form.product_info.shop_id = Data.shop_id;
-      form.product_info.shop_name = Data.shop_name;
-      form.product_info.origin = Data.origin;
-      form.product_info.material = Data.material;
-      form.product_info.size = Data.size;
-      form.product_info.color = Data.color;
-      form.product_info.weight = Data.weight;
-      form.product_info.packaging_details = Data.packaging_details;
-      form.product_info.warranty_info = Data.warranty_info;
-      form.product_info.production_date = Data.production_date;
-      form.product_info.expiration_date = Data.expiration_date;
-      form.product_info.category_id = Data.category_id;
-      form.product_info.category_name = Data.category_name;
-      form.product_info.main_image = Data.main_image;
-      form.product_info.additional_images = JSON.parse(
-        Data.additional_images || ""
-      );
-      form.product_info.details_images = JSON.parse(Data.details_images || "");
-      form.product_info.tags = Data.tags;
+  axios.get(`/products/${rowData.value.product_id}`)
+  .then((response: AxiosResponse) => {
+    const data = response.data.data as ProductData;
+    const fields = Object.keys(data);
 
-      form.product_sales.price = Data.price;
-      form.product_sales.cost_price = Data.cost_price;
-      form.product_sales.stock_quantity = Data.stock_quantity;
-      form.product_sales.reorder_threshold = Data.reorder_threshold;
-      form.product_sales.promotion_details = Data.promotion_details;
-      form.product_sales.shipping_fee = Data.shipping_fee;
-      form.product_sales.sales_status = Data.sales_status;
-
-      form.inventory.warehouse_id = Data.warehouse_id;
-      form.inventory.warehouse_name = Data.warehouse_name;
-      form.inventory.safety_stock = Data.safety_stock;
-      form.inventory.last_restock_date = Data.last_restock_date;
-      form.inventory.restock_threshold = Data.restock_threshold;
+    Object.entries(mapFields).forEach(([section, keys]) => {
+      const sectionData = form[section] as Partial<ProductData>;
+      keys.forEach(key => {
+        if (fields.includes(key)) {
+          if (key === 'additional_images' || key === 'details_images') {
+            sectionData[key] = JSON.parse(data[key] || '');
+          } else {
+            sectionData[key] = data[key];
+          }
+        }
+      });
     });
+
+    // 附加处理逻辑（如有需要）
+    console.log(form);
+    
+  })
+  .catch(error => {
+    console.error('Error fetching product data:', error);
+  });
 }
 const searchText = ref("");
 const searchType = ref("");
