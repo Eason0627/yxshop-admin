@@ -160,7 +160,7 @@ import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
 import { userShopStore } from "@/store/index";
-import { ElMessageBox, ElNotification ,ElMessage } from "element-plus";
+import { ElMessageBox ,ElMessage } from "element-plus";
 import type Shop from "@/model/Shop";
 
 // 注入默认头像
