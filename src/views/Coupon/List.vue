@@ -148,7 +148,7 @@ const formFields = ref<FormField<any>[]>([
     ],
   },
   {
-    type: "datepicker",
+    type: "datetime",
     label: "有效时间",
     prop: "start_date",
     placeholder: "请选择开始时间",
@@ -157,7 +157,7 @@ const formFields = ref<FormField<any>[]>([
     group: "使用规则", // 添加 group 属性
   },
   {
-    type: "datepicker",
+    type: "datetime",
     label: "过期时间",
     prop: "end_date",
     placeholder: "请选择结束时间",
@@ -488,6 +488,9 @@ const handleFormSubmit = async (data: Coupon) => {
   data.applicable_items = JSON.stringify(data.applicable_items);
   try {
     if (dialogType.value === "add") {
+      console.log("新增优惠券数据:", data);
+      console.log( data.start_date);
+      
       await axios.post("/coupon", data).then(async (res) => {
         if (res.data.code === 200) {
           ElMessage.success("添加成功");

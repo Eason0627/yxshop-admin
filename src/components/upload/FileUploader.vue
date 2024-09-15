@@ -42,7 +42,8 @@ interface Props {
   multiple?: boolean;
   limit?: number;
   auto?: boolean;
-  // fileList?: any[];
+  fileList?: any[];
+  urlList?: string[];
   propsStr?: string;
   beforeUpload?: (file: any) => boolean;
   onSuccess?: (response: any, file: any, fileList: any[]) => void;
@@ -70,7 +71,8 @@ const props = withDefaults(defineProps<Props>(), {
   multiple: false,
   limit: 5,
   auto: false,
-  // fileList: any[],
+  // fileList: ()=>[],
+  urlList: () => [],
   propsStr: "",
   beforeUpload: () => true,
   onSuccess: () => {},
@@ -98,6 +100,13 @@ const headers = ref({
 watchEffect(() => {
   uploadAction.value = props.action;
   propsStr.value = props.propsStr;
+  // fileList.value = props.fileList
+  // console.log("fileList", fileList.value);
+  // if(props.urlList){
+  //   previewerList.value = props.urlList
+  //   console.log("previewerList", previewerList.value);
+  // }
+  
 });
 
 // 提交上传

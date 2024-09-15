@@ -18,7 +18,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, reactive, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 
 const props = defineProps({
   coupon: {

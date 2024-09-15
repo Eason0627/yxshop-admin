@@ -6,6 +6,7 @@ export interface FormField<T> {
     | "number"
     | "double"
     | "datepicker"
+    | "datetime"
     | "select"
     | "checkbox"
     | "radio";

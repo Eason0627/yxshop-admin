@@ -40,3 +40,5 @@ export default interface Product {
   create_time?: string | Array<number>; // 创建时间，自动填充
   updateTime?: string | Array<number>; // 更新时间，自动更新
 }
+
+  

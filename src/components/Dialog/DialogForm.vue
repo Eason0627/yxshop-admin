@@ -97,7 +97,7 @@
                   </template>
                 </el-select>
                 <el-date-picker
-                  v-else-if="field.type === 'datepicker'"
+                  v-else-if="field.type === 'datetime'"
                   v-model="formData[field.prop]"
                   type="date"
                   :placeholder="field.placeholder"

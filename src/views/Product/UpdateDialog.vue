@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    v-model="props.dialogVisible"
+    v-model="dialogVisible"
     @close="closeDialog()"
     title="修改产品信息"
     width="1000"
@@ -8,7 +8,7 @@
     <el-form
       class="flex flex-col"
       ref="formRef"
-      :model="props.form"
+      :model="form"
       :rules="rules"
       label-position="left"
       label-width="80px"
@@ -44,33 +44,19 @@
                 </el-tooltip>
               </div>
             </template>
-            <div
-              v-if="props.form.product_info.main_image"
-              class="flex flex-col items-center mx-1"
-            >
-              <el-image
-                style="width: 5rem; height: 5rem"
-                :src="props.form.product_info.main_image"
-              />
-              <!-- <el-button
-                size="small"
-                type="danger"
-                :icon="Delete"
-                class="mt-[3px]"
-                @click="deleteMainImage"
-              /> -->
-            </div>
-            <FileUploader
             
+            <ShowImg :images="[form.product_info.main_image]" :propStr="'main_image'" @deleteImage=""></ShowImg>
+            <FileUploader
               :action="uploadUrl"
               :multiple="true"
               :limit="1"
+              :props-str="'main'"
               :before-upload="validateImage"
               ref="uploadRef1"
-              @onSuccess="handleUploadSuccess"
-              @onError="handleUploadError"
-              @change="handleUploadchange"
-              @update:modelValue="handledelete"
+              @onSuccess="uploadSuccess"
+              @onError="uploadError"
+              @change="uploadChange"
+              @update:modelValue="uploadValue"
             />
           </el-form-item>
 
@@ -95,30 +81,19 @@
                 </el-tooltip>
               </div>
             </template>
-            <div
-              v-if="props.form.product_info.additional_images"
-              v-for="(item) in props.form.product_info.additional_images"
-              class="flex flex-col items-center mx-1"
-            >
-              <el-image style="width: 5rem; height: 5rem" :src="item" />
-              <!-- <el-button
-                size="small"
-                type="danger"
-                :icon="Delete"
-                class="mt-[3px]"
-                @click="deleteCarouselImage(index)"
-              /> -->
-            </div>
+       
+            <ShowImg :images="form?.product_info.additional_images" :propStr="'additional_images'" @removeImage=""></ShowImg>
             <FileUploader
               :action="uploadUrl"
               :multiple="true"
-              :limit="5"
+              :limit="5-(form?.product_info?.additional_images?.length||0)"
               :before-upload="validateImage"
+              :props-str="'carousel'"
               ref="uploadRef2"
-              @onSuccess="CarouselhandleUploadSuccess"
-              @onError="CarouselhandleUploadError"
-              @change="CarouselhandleUploadchange"
-              @update:modelValue="Carouselhandledelete"
+              @onSuccess="uploadSuccess"
+              @onError="uploadError"
+              @change="uploadChange"
+              @update:modelValue="uploadValue"
             />
           </el-form-item>
 
@@ -143,30 +118,19 @@
                 </el-tooltip>
               </div>
             </template>
-            <div
-              v-if="props.form.product_info.details_images"
-              v-for="(item) in props.form.product_info.details_images"
-              class="flex flex-col items-center mx-1"
-            >
-              <el-image style="width: 5rem; height: 5rem" :src="item" />
-              <!-- <el-button
-                size="small"
-                type="danger"
-                :icon="Delete"
-                class="mt-[3px]"
-                @click="deleteDetailsImage(index)"
-              /> -->
-            </div>
+            
+            <ShowImg :images="form?.product_info.details_images" :propStr="'details_images'" @removeImage=""></ShowImg>
             <FileUploader
               :action="uploadUrl"
               :multiple="true"
-              :limit="5"
+              :limit="5-(form?.product_info?.details_images?.length||0)"
               :before-upload="validateImage"
-              @change="DetailsImagesHandleUploadchange"
+              :props-str="'details'"
               ref="uploadRef3"
-              @onSuccess="DetailsImagesHandleUploadSuccess"
-              @onError="DetailsImagesHandleUploadError"
-              @update:modelValue="DetailsImageshandledelete"
+              @onSuccess="uploadSuccess"
+              @onError="uploadError"
+              @change="uploadChange"
+              @update:modelValue="uploadValue"
             />
           </el-form-item>
         </div>
@@ -181,14 +145,14 @@
         <div class="item-group grid grid-cols-1 px-8">
           <el-form-item label="商品名称" prop="product_info.product_name">
             <el-input
-              v-model="form.product_info.product_name"
+              v-model="form?.product_info.product_name"
               placeholder="请输入商品名称"
               style="width: 200px"
             />
           </el-form-item>
           <el-form-item label="商品描述" prop="product_info.description">
             <el-input
-              v-model="form.product_info.description"
+              v-model="form?.product_info.description"
               type="textarea"
               placeholder="请输入商品描述"
               style="width: 300px"
@@ -201,9 +165,9 @@
           <el-form-item label="品牌名称" prop="product_info.brand_id" required >
             <!-- <el-input v-model.number="form.product_info.brand_id" placeholder="请输入品牌ID" /> -->
             <el-select
-              v-model="form.product_info.brand_id"
+              v-model="form?.product_info.brand_id"
               placeholder="选择品牌"
-              :focus="handleBrand()"
+              @focus="handleBrand()"
             >
               <el-option
                 v-for="brand in brandList"
@@ -216,8 +180,9 @@
           <el-form-item label="所属店铺" prop="product_info.shop_id" required>
             <!-- <el-input v-model.number="form.product_info.shop_id" placeholder="请输入店铺ID" /> -->
             <el-select
-              v-model="form.product_info.shop_id"
+              v-model="form?.product_info.shop_id"
               placeholder="选择店铺"
+              @focus="handleBrand()"
             >
               <el-option
                 v-for="shop in shopList"
@@ -231,10 +196,10 @@
             label="商品分类"
             prop="product_info.category_id"
             required
-            :focus="handleCategory()"
+            @focus="handleCategory()"
           >
             <el-select
-              v-model="form.product_info.category_id"
+              v-model="form?.product_info.category_id"
               placeholder="选择分类"
               
             >
@@ -252,7 +217,7 @@
             required
           >
             <el-date-picker
-              v-model="form.product_info.production_date"
+              v-model="form?.product_info.production_date"
               type="date"
               placeholder="选择日期"
             />
@@ -263,7 +228,7 @@
             required
           >
             <el-date-picker
-              v-model="form.product_info.expiration_date"
+              v-model="form?.product_info.expiration_date"
               type="date"
               placeholder="选择日期"
             />
@@ -329,49 +294,49 @@
         <div class="item-group grid grid-cols-4 gap-4 px-8">
           <el-form-item label="产地" prop="product_info.origin">
             <el-input
-              v-model="form.product_info.origin"
+              v-model="form?.product_info.origin"
               placeholder="请输入原产地"
             />
           </el-form-item>
 
           <el-form-item label="材质" prop="product_info.material">
             <el-input
-              v-model="form.product_info.material"
+              v-model="form?.product_info.material"
               placeholder="请输入材质"
             />
           </el-form-item>
 
           <el-form-item label="尺寸" prop="product_info.size">
             <el-input
-              v-model="form.product_info.size"
+              v-model="form?.product_info.size"
               placeholder="请输入尺寸"
             />
           </el-form-item>
 
           <el-form-item label="颜色" prop="product_info.color">
             <el-input
-              v-model="form.product_info.color"
+              v-model="form?.product_info.color"
               placeholder="请输入颜色"
             />
           </el-form-item>
 
           <el-form-item label="重量" prop="product_info.weight">
             <el-input
-              v-model.number="form.product_info.weight"
+              v-model.number="form?.product_info.weight"
               placeholder="请输入重量"
             />
           </el-form-item>
 
           <el-form-item label="包装详情" prop="product_info.packaging_details">
             <el-input
-              v-model="form.product_info.packaging_details"
+              v-model="form?.product_info.packaging_details"
               placeholder="请输入包装详情"
             />
           </el-form-item>
 
           <el-form-item label="保修信息" prop="product_info.warranty_info">
             <el-input
-              v-model="form.product_info.warranty_info"
+              v-model="form?.product_info.warranty_info"
               placeholder="请输入保修信息"
             />
           </el-form-item>
@@ -392,13 +357,13 @@
             required
           >
             <el-input
-              v-model="form.product_sales.promotion_details"
+              v-model="form?.product_sales.promotion_details"
               placeholder="请输入促销详情"
             />
           </el-form-item>
           <el-form-item label="商品价格" prop="product_sales.price" required>
             <el-input
-              v-model.number="form.product_sales.price"
+              v-model.number="form?.product_sales.price"
               placeholder="请输入商品价格"
             />
           </el-form-item>
@@ -409,7 +374,7 @@
             required
           >
             <el-input
-              v-model.number="form.product_sales.cost_price"
+              v-model.number="form?.product_sales.cost_price"
               placeholder="请输入成本价格"
             />
           </el-form-item>
@@ -419,7 +384,7 @@
             required
           >
             <el-input
-              v-model.number="form.product_sales.shipping_fee"
+              v-model.number="form?.product_sales.shipping_fee"
               placeholder="请输入运费"
             />
           </el-form-item>
@@ -430,7 +395,7 @@
             required
           >
             <el-input-number
-              v-model="form.product_sales.stock_quantity"
+              v-model="form?.product_sales.stock_quantity"
               controls-position="right"
               :min="0"
               placeholder="请输入库存数量"
@@ -449,8 +414,9 @@
           <el-form-item label="仓库名称" prop="inventory.warehouse_id" required>
             <!-- <el-input v-model.number="form.inventory.warehouse_id" placeholder="请输入仓库ID" /> -->
             <el-select
-              v-model="form.product_info.warehouse_id"
+              v-model="form?.inventory.warehouse_id"
               placeholder="选择仓库"
+              @focus="handleBrand()"
             >
               <el-option
                 v-for="warehouse in warehouseList"
@@ -463,7 +429,7 @@
 
           <el-form-item label="安全库存" prop="inventory.safety_stock" required>
             <el-input
-              v-model.number="form.inventory.safety_stock"
+              v-model.number="form?.inventory.safety_stock"
               placeholder="请输入安全库存量"
             />
           </el-form-item>
@@ -474,7 +440,7 @@
             required
           >
             <el-input
-              v-model.number="form.inventory.restock_threshold"
+              v-model.number="form?.inventory.restock_threshold"
               placeholder="请输入补货阈值"
             />
           </el-form-item>
@@ -501,7 +467,9 @@ import {
   defineEmits,
   nextTick,
   // onMounted,
-  watchEffect,
+  // watchEffect,
+reactive,
+watch,
 } from "vue";
 import FileUploader from "@/components/upload/FileUploader.vue";
 import { Axios, AxiosResponse } from "axios";
@@ -509,39 +477,177 @@ import Brand from "@/model/Brand";
 import Shop from "@/model/Shop";
 import Warehouse from "@/model/Warehouse";
 import Category from "@/model/Category";
+import FormModel  from "@/model/ProductType";
+
+
+//导入展示图片组件
+import ShowImg from "@/components/upload/ShowImg.vue"
 
 // 获取 axios
 const axios: Axios = inject("axios") as Axios;
+
+// const dialogVisible = ref(false);
+// // 在组件中使用该类型
+// const form = ref< FormModel| null>(null);
+
 // 定义接收的 prop 类型
-const props = defineProps({
-  dialogVisible: {
-    type: Boolean,
-    default: false,
-  },
-  form: {
-    type: Object,
-    required: true,
-  },
-});
+interface Props {
+  form?: FormModel;
+  dialogVisible?: boolean;
+}
+
+const props = defineProps<Props>();
 
 // 定义自定义事件
 const emit = defineEmits(["update:Visible"]);
 
-const dialogVisible = ref(false);
+// watchEffect(() => {
+//   dialogVisible.value = props.dialogVisible;
+//   console.log("弹窗值"+dialogVisible.value);
+//   if (props.form) {
+//     console.log("赋值前"+props.form);
+//     form.value = {...props.form };
+//     console.log("form"+form);
+//   } 
+// });
+
+// 使用ref来响应式地存储对话框可见性和表单数据  
+const dialogVisible = ref(props.dialogVisible || false);  
+const form = ref<FormModel | null>(null);  
+  
+// 使用watch来监听props变化  
+watch(() => props.dialogVisible, (newValue) => {  
+  dialogVisible.value = newValue;  
+  console.log("弹窗值: " + dialogVisible.value);  
+});  
+  
+watch(() => props.form, (newValue) => {  
+  if (newValue) {  
+    // 使用JSON.parse(JSON.stringify())或_.cloneDeep进行深拷贝  
+    form.value = JSON.parse(JSON.stringify(newValue));  
+    console.log("form赋值后: ", form.value);  
+  }  
+}, {  
+  deep: true, // 如果FormModel是复杂的对象或数组，需要开启深度监听  
+});  
 
 const uploadUrl = "http://localhost:8080/upload";
 
 const deleteMainImage = () => {
-  props.form.product_info.main_image = "";
+  form.product_info.main_image = "";
 };
 const deleteCarouselImage = (index: any) => {
   console.log(index);
-  props.form.product_info.additional_images.splice(index, 1);
+  form.product_info.additional_images.splice(index, 1);
 };
 const deleteDetailsImage = (index: any) => {
   console.log(index);
-  props.form.product_info.details_images.splice(index, 1);
+  form.product_info.details_images.splice(index, 1);
 };
+
+// 表单验证规则
+const rules = reactive({
+  "product_info.product_name": [
+    { required: true, message: "请输入商品名称", trigger: "blur" },
+
+  ],
+  "product_info.description": [
+    { required: true, message: "请输入描述", trigger: "blur" },
+    { maxLength: 500, message: "描述不能超过500个字符", trigger: "blur" }
+  ],
+  "product_info.brand_id": [
+    { required: true, message: "请选择品牌", trigger: "blur" },
+    // { type: 'number', message: "品牌ID必须是数字", trigger: "blur" }
+  ],
+  "product_info.shop_id": [
+    { required: true, message: "请选择店铺", trigger: "blur" },
+    // { type: 'number', message: "店铺ID必须是数字", trigger: "blur" }
+  ],
+  "product_info.origin": [
+    { required: true, message: "请输入产地", trigger: "blur" },
+    // { pattern: /^中国$/, message: "产地必须是中国", trigger: "blur" }
+  ],
+  "product_info.material": [
+    { required: true, message: "请输入材质", trigger: "blur" },
+    // { type: 'number', message: "材质代码必须是数字", trigger: "blur" }
+  ],
+  "product_info.size": [
+    { required: true, message: "请输入尺寸", trigger: "blur" },
+    { type: 'number', message: "尺寸必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "尺寸不能小于0", trigger: "blur" }
+  ],
+  "product_info.color": [
+    { required: true, message: "请输入颜色", trigger: "blur" }
+  ],
+  "product_info.weight": [
+    { required: true, message: "请输入重量", trigger: "blur" },
+    { type: 'number', message: "重量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "重量不能小于0", trigger: "blur" }
+  ],
+  "product_info.packaging_details": [
+    { required: true, message: "请输入包装详情", trigger: "blur" }
+  ],
+  "product_info.warranty_info": [
+    { required: true, message: "请输入保修信息", trigger: "blur" }
+  ],
+  "product_info.production_date": [
+    { required: true, message: "请输入生产日期", trigger: "blur" },
+    { type: 'date', message: "生产日期必须是有效的日期格式", trigger: "blur" },
+  ],
+  "product_info.expiration_date": [
+    { required: true, message: "请输入过期日期", trigger: "blur" },
+    { type: 'date', message: "过期日期必须是有效的日期格式", trigger: "blur" },
+    
+  ],
+  "product_info.category_id": [
+    { required: true, message: "请选择分类", trigger: "blur" },
+    // { type: 'number', message: "分类ID必须是数字", trigger: "blur" }
+  ],
+  "product_sales.price": [
+    { required: true, message: "请输入价格", trigger: "blur" },
+    { type: 'number', message: "价格必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "价格不能小于0", trigger: "blur" }
+  ],
+  "product_sales.cost_price": [
+    { required: true, message: "请输入成本价", trigger: "blur" },
+    { type: 'number', message: "成本价必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "成本价不能小于0", trigger: "blur" }
+  ],
+  "product_sales.stock_quantity": [
+    { required: true, message: "请输入库存数量", trigger: "blur" },
+    { type: 'number', message: "库存数量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "库存数量不能小于0", trigger: "blur" }
+  ],
+  "product_sales.reorder_threshold": [
+    { required: true, message: "请输入补货阈值", trigger: "blur" },
+    { type: 'number', message: "补货阈值必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "补货阈值不能小于0", trigger: "blur" }
+  ],
+  "product_sales.sold_quantity": [
+    { required: true, message: "请输入已售数量", trigger: "blur" },
+    { type: 'number', message: "已售数量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "已售数量不能小于0", trigger: "blur" }
+  ],
+  "product_sales.review_count": [
+    { required: true, message: "请输入评价数量", trigger: "blur" },
+    { type: 'number', message: "评价数量必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "评价数量不能小于0", trigger: "blur" }
+  ],
+  "product_sales.average_rating": [
+    { required: true, message: "请输入平均评分", trigger: "blur" },
+    { type: 'number', message: "平均评分必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "平均评分不能小于0", trigger: "blur" },
+    // { maxValue: 5, message: "平均评分不能超过5", trigger: "blur" }
+  ],
+  "product_sales.promotion_details": [
+    { message: "请输入促销详情", trigger: "blur" }
+  ],
+  "product_sales.shipping_fee": [
+    { required: true, message: "请输入运费", trigger: "blur" },
+    { type: 'number', message: "运费必须是数字", trigger: "blur" },
+    // { minValue: 0, message: "运费不能小于0", trigger: "blur" }
+  ]
+});
 
 // 响应式引用数组
 const brandList = ref<Brand[]>([]);
@@ -566,85 +672,64 @@ function validateImage(file: File): boolean {
   }
   return true;
 }
-// 商品首页图片
-function handleUploadSuccess(response: any, file: any, fileList: any[]) {
+// 2. 上传成功
+function uploadSuccess(
+  response?: any,
+  file?: any,
+  fileList?: any[],
+  props?: string
+) {
   console.log("上传成功", response, file, fileList);
-  // 处理上传成功后的逻辑
-  // 假设后端返回的 URL 存储在 response.data.url
-  props.form.product_info.main_image = response.data;
-  // console.log("图片 URL:", form.product_info.main_image);
-  // console.log("图片 fileList:", fileList);
-}
-function handleUploadError(error: any, file: any, fileList: any[]) {
-  console.error("上传失败", error, file, fileList);
-  // 处理上传失败后的逻辑
+  if (props === "main") {
+    form.value.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.value.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.value.product_info.details_images = fileList as string[];
+  }
 }
 
-function handledelete(file: any, fileList: any[]) {
+// 3. 上传失败
+function uploadError(
+  error?: any,
+  file?: any,
+  fileList?: any[],
+  props?: string
+) {
+  console.error("上传失败", error, file, fileList);
+  if (props === "main") {
+    form.value.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.value.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.value.product_info.details_images = fileList as string[];
+  }
+}
+
+// 更新数据
+function uploadValue(file?: any, fileList?: any[], props?: string) {
   console.log("删除文件", file, fileList);
-  //清空数组
-  // console.log("fileList", fileList.value);
-}
-function handleUploadchange(file: any, fileList: any[]) {
-  console.log("上传中", file, fileList);
-  // fileLists1.value.push(fileList[0]);
-  // console.log("fileList", fileLists1.value);
-  // 处理上传中的逻辑
-}
-// 商品轮播图图片
-function CarouselhandleUploadSuccess(
-  response: any,
-  file: any,
-  fileList: any[]
-) {
-  console.log("上传成功", response, file, fileList);
-  // 假设后端返回的 URL 存储在 response.data.url
-  props.form.product_info.additional_images.push(response.data);
-}
-function CarouselhandleUploadError(error: any, file: any, fileList: any[]) {
-  console.error("上传失败", error, file, fileList);
-  // 处理上传失败后的逻辑
-}
-function CarouselhandleUploadchange(file: any, fileList: any[]) {
-  console.log("上传中", file, fileList);
-  // console.log("fileList", fileLists.value);
-  // 处理上传中的逻辑
-}
-function Carouselhandledelete(file: any, fileList: any[]) {
-  console.log("剩余文件", fileList, file);
-
-  // 处理删除文件的逻辑
+  if (props === "main") {
+    form.value.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.value.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.value.product_info.details_images = fileList as string[];
+  }
 }
 
-// 商品详细图
-function DetailsImagesHandleUploadSuccess(
-  response: any,
-  file: any,
-  fileList: any[]
-) {
-  console.log("上传成功", response, file, fileList);
-  // 假设后端返回的 URL 存储在 response.data.url
-  props.form.product_info.details_images.push(response.data);
-  // console.log("图片 URL:", form.product_info.details_images);
+// 文件上传中
+function uploadChange( file?: any, fileList?: any[], props?: string) {
+  console.log("上传中", file, fileList, props);
+  if (props === "main") {
+    form.value.product_info.main_image = file;
+  } else if (props === "carousel") {
+    form.value.product_info.additional_images = fileList as string[];
+  } else if (props === "details") {
+    form.value.product_info.details_images = fileList as string[];
+  }
 }
-function DetailsImagesHandleUploadError(
-  error: any,
-  file: any,
-  fileList: any[]
-) {
-  console.error("上传失败", error, file, fileList);
-  // 处理上传失败后的逻辑
-}
-function DetailsImagesHandleUploadchange(file: any, fileList: any[]) {
-  console.log("上传中", file, fileList);
-  // fileLists3.value.push(file);
-  // console.log("fileList", fileLists.value);
-  // 处理上传中的逻辑
-}
-function DetailsImageshandledelete(file: any, fileList: any[]) {
-  console.log("剩余文件", fileList);
-  console.log("存储文件删除前", file);
-}
+
 
 /**tags */
 const inputValue = ref("");
@@ -653,7 +738,7 @@ const inputVisible = ref(false);
 const InputRef = ref<InstanceType<typeof ElInput>>();
 const handleClose = (tag: string) => {
   dynamicTags.value.splice(dynamicTags.value.indexOf(tag), 1);
-  props.form.product_info.tags = [...dynamicTags.value];
+  // props.form.product_info?.tags = [...dynamicTags.value];
   // console.log(form.product_info.tags)
 };
 const showInput = () => {
@@ -665,7 +750,7 @@ const showInput = () => {
 const handleInputConfirm = () => {
   if (inputValue.value) {
     dynamicTags.value.push(inputValue.value);
-    props.form.product_info.tags = [...dynamicTags.value];
+    // props.form.product_info.tags = [...dynamicTags.value];
     // console.log(form.product_info.tags)
   }
   inputVisible.value = false;
@@ -686,25 +771,7 @@ function closeDialog() {
   dialogVisible.value = false;
 }
 
-// 全局变量来存储待上传的文件
-let fileToUpload: File | null = null;
-// 图片上传函数
-const uploadImage = async () => {
-  //判断是否有图片
-  const formData = new FormData();
-  formData.append("file", fileToUpload as Blob);
-  console.log(formData);
-  await axios
-    .post("/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    })
-    .then((res: AxiosResponse) => {
-      category.value!.image_url = res.data.data;
-      fileToUpload = null;
-    });
-};
+
 //提交修改
 async function submitChanges() {
   // 发送请求发布商品
@@ -847,11 +914,5 @@ const handleCategory = async () => {
 //   handleCategory();
 // });
 
-watchEffect(() => {
-  dialogVisible.value = props.dialogVisible;
-  // if (props.dialogVisible) {
-  //   handleBrand();
-  //   handleCategory();
-  // }
-});
+
 </script>
