@@ -362,14 +362,16 @@ const getBrandData = async () => {
       },
     })
     .then((res: AxiosResponse<any>) => {
-      if (res.data.list && res.data.list.length) {
+      console.log(res.data.data.list);
+      if (res.data.data.list && res.data.data.list.length) {
         // 根据店铺状态排序
-        brandList.value = res.data.list;
+        brandList.value = res.data.data.list;
+        console.log(brandList.value);
         brandList.value = sortBrandStatus(brandList.value);
       } else {
         ElMessage.warning("暂无品牌数据!");
       }
-      page.total = parseInt(res.data.total);
+      page.total = parseInt(res.data.data.total);
     })
     .catch(() => {
       ElMessage.error("获取品牌数据失败！");

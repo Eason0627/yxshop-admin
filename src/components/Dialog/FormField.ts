@@ -9,7 +9,9 @@ export interface FormField<T> {
     | "datetime"
     | "select"
     | "checkbox"
-    | "radio";
+    | "radio"
+    | "varchar"
+    ;
   label: string;
   prop: keyof T;
   show: boolean;
