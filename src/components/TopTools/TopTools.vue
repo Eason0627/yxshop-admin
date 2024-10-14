@@ -154,13 +154,14 @@
 <script setup lang="ts">
 /// 导入事件总线
 import bus from "@/utils/event-bus.ts";
-import { ref, onBeforeMount, inject } from "vue";
+import { ref, onBeforeMount, inject, onBeforeUnmount } from "vue";
 import { RouteRecordRaw, useRouter } from "vue-router";
 import User from "@/model/User";
 import { PopUp, Type } from "../PopUp";
 import { Axios } from "axios";
 import { userShopStore } from "@/store/index";
-import { ElMessageBox ,ElMessage } from "element-plus";
+import EventBus from "@/utils/event-bus";
+import { ElMessageBox, ElMessage } from "element-plus";
 import type Shop from "@/model/Shop";
 
 // 注入默认头像
@@ -251,8 +252,8 @@ const selectShop = (item: Shop) => {
       // });
       ElMessage({
         message: "切换为" + item.shop_name + "店铺",
-        type: 'success',
-      })
+        type: "success",
+      });
     })
     .catch(() => {});
 };
@@ -345,7 +346,11 @@ const onShopMouseLeave = (flag: boolean, event: any) => {
   }
 };
 
-onBeforeMount(() => {
+EventBus.on("updateTopTools", async () => {
+  await getShops();
+});
+
+onBeforeMount(async () => {
   getRouteInfo();
   if (localStorage.getItem("user")) {
     user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -353,9 +358,7 @@ onBeforeMount(() => {
     PopUp.getInstance(Type.error, "请先登录").show();
     toLogin();
   }
-});
 
-onBeforeMount(async () => {
   await getUserInfo().then(async () => {
     await getShops().then(() => {
       if (localStorage.getItem("currentShop")) {
@@ -370,6 +373,10 @@ onBeforeMount(async () => {
     });
   });
 });
+
+onBeforeUnmount(() => {
+  EventBus.off("updateTopTools");
+})
 </script>
 <style lang="scss" scoped>
 .shopListShow {

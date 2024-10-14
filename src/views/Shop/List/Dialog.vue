@@ -139,6 +139,7 @@ import Shop from "@/model/Shop";
 import { ElMessage, FormInstance, FormRules } from "element-plus";
 import axios from "@/utils/axios";
 import { AxiosResponse } from "axios";
+import EventBus from "@/utils/event-bus";
 import User from "@/model/User";
 
 // 传参数据类型
@@ -249,8 +250,8 @@ const clearData = () => {
     shop_description: "",
     shop_image: "",
     status: "Active",
-    id:"",
-    name:"",
+    id: "",
+    name: "",
   };
 };
 
@@ -281,7 +282,11 @@ async function onConfirm(FormRef: FormInstance | undefined) {
         });
       } else if (dialogType.value == "edit") {
         // 判断图片是否更改了 (是否含有http前缀)
-        if (shop.value && shop.value.shop_image && shop.value.shop_image.indexOf("http") == -1) {
+        if (
+          shop.value &&
+          shop.value.shop_image &&
+          shop.value.shop_image.indexOf("http") == -1
+        ) {
           // 将原base64图片转为 file对象
           const file = base64ToFile(shopImage.value, "shop.jpg");
           // 获取在线链接
@@ -338,6 +343,8 @@ async function addShop() {
       if (res.data.code == 200) {
         ElMessage.success("新增店铺成功！");
         emit("getData");
+        // 触发 TopTools 组件更新
+        EventBus.emit("updateTopTools");
       }
     })
     .catch(() => {

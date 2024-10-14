@@ -273,7 +273,10 @@ const handleLogin = async () => {
       localStorage.setItem("password", loginForm.password);
     }
   } catch (e: any) {
+    loading.value = false;
     PopUp.getInstance(Type.error, e.message).show();
+  } finally {
+    loading.value = false
   }
 };
 
@@ -321,14 +324,14 @@ const handleForgetPsd = async () => {
   if (loginForm.password === "") {
     return PopUp.getInstance(Type.error, "密码不能为空").show();
   }
-  if (loginForm.password !== loginForm.confirmPassword) {
-    return PopUp.getInstance(Type.error, "两次输入的密码不一致").show();
-  }
+  // if (loginForm.password !== loginForm.confirmPassword) {
+  //   return PopUp.getInstance(Type.error, "两次输入的密码不一致").show();
+  // }
   if (loginForm.verificationCode === "") {
     return PopUp.getInstance(Type.error, "验证码不能为空").show();
   }
   res = (await axios
-    .post("/forgetPsd", {
+    .put("/updatePsd", {
       email: loginForm.email,
       oldPassword: loginForm.password,
       newPassword: loginForm.confirmPassword,

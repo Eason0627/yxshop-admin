@@ -87,6 +87,18 @@
           :width="column.width ? column.width : ''"
           align="center"
         >
+          <template v-if="column.type === 'image'" #default="{ row }">
+            <el-image
+              :src="row[column.prop] ? row[column.prop] : ''"
+              :zoom-rate="1.2"
+              :max-scale="7"
+              :min-scale="0.2"
+              preview-teleported
+              :preview-src-list="[row[column.prop] ? row[column.prop] : '']"
+              fit="cover"
+              style="width: 64px; height: 64px"
+            />
+          </template>
           <template v-if="column.type === 'tag'" #default="{ row }">
             <div>
               <el-tag>{{ row[column.prop] }}</el-tag>
@@ -99,6 +111,54 @@
               }}</el-tag>
             </div>
           </template>
+          <template v-else-if="column.type === 'sex'" #default="{ row }">
+            <div>
+              <el-tag type="primary">{{
+                row[column.prop] == "Male" ? "男" : "女"
+              }}</el-tag>
+            </div>
+          </template>
+          <template v-else-if="column.type === 'role'" #default="{ row }">
+            <div>
+              <el-tag type="primary">{{
+                row[column.prop] == "Admin"
+                  ? "管理员"
+                  : row[column.prop] == "ShopAdmin"
+                  ? "商家"
+                  : "普通用户"
+              }}</el-tag>
+            </div>
+          </template>
+          <template
+            v-else-if="column.type === 'user_status'"
+            #default="{ row }"
+          >
+            <div>
+              <el-tag
+                :type="
+                  row[column.prop] == 'Active'
+                    ? 'success'
+                    : row[column.prop] == 'Inactive'
+                    ? 'warning'
+                    : 'info'
+                "
+                >{{
+                  row[column.prop] == "Active"
+                    ? "正常"
+                    : row[column.prop] == "Inactive"
+                    ? "封禁"
+                    : "已注销"
+                }}</el-tag
+              >
+            </div>
+          </template>
+          <template v-else-if="column.type === 'judge'" #default="{ row }">
+            <div>
+              <el-tag :type="row[column.prop] ? 'success' : 'info'">{{
+                row[column.prop] ? "是" : "否"
+              }}</el-tag>
+            </div>
+          </template>
           <template v-else-if="column.type === 'text'" #default="{ row }">
             <div>
               <el-tooltip
@@ -106,14 +166,16 @@
                 effect="dark"
                 :content="row[column.prop]"
                 placement="top"
+                v-if="row[column.prop]"
               >
                 <div class="flex justify-center items-center truncate">
                   <span>{{ row[column.prop] }}</span>
                 </div>
               </el-tooltip>
+              <span v-else>暂无</span>
             </div>
           </template>
-          <template  #default="{ row }">
+          <template #default="{ row }">
             <div>
               <span v-if="column.formatter">{{
                 column.formatter(row[column.prop], row)
@@ -157,6 +219,7 @@
       :labelPosition="'left'"
       :fields="formFields"
       :form-data="formData"
+      @uploadChange="handleUploadChange"
       @update:dialogVisible="dialogVisible = $event"
       @update:formData="formData = $event"
       @submit="handleFormSubmit"
@@ -211,6 +274,7 @@ const emit = defineEmits<{
   (e: "search", searchParams: any): void;
   (e: "reSet"): void;
   (e: "updateSelection", selectedRows: any[]): void;
+  (e: "uploadChange", file: any, fileList: any[]): void;
   (e: "handleSubmit", response: any): void;
 }>();
 
@@ -342,6 +406,11 @@ const handleFormSubmit = (data: any) => {
   emit("handleSubmit", data);
 };
 
+const handleUploadChange = (file: any, fileList: any) => {
+  // 上传文件回调
+  emit("uploadChange", file, fileList);
+};
+
 onMounted(() => {
   // 初始化操作
 });
@@ -353,6 +422,11 @@ watchEffect(() => {
   addButtonLabel.value = props.addButtonLabel;
   formFields.value = props.formFields;
   loading.value = props.loading ?? false;
+});
+
+defineExpose({
+  formData,
+  formFields,
 });
 </script>
 
