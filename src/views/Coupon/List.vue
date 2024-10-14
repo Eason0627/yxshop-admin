@@ -482,11 +482,15 @@ const handleFormSubmit = async (data: Coupon) => {
     });
     data.type_id = option?.id as string;
   }
+  
   // 比较原始数据与新数据
   const hasChanges = compareObjects(editData.value, data);
   // 将适用商品数组转换为字符串
   data.applicable_items = JSON.stringify(data.applicable_items);
+
   try {
+    data.start_date = convertToCustomFormat(data.start_date)
+    data.end_date = convertToCustomFormat(data.end_date)
     if (dialogType.value === "add") {
       console.log("新增优惠券数据:", data);
       console.log( data.start_date);
@@ -500,8 +504,8 @@ const handleFormSubmit = async (data: Coupon) => {
       });
     } else if (dialogType.value === "edit") {
       if (hasChanges) return ElMessage.warning("数据未发生改变");
-      data.start_date = new Date(data.start_date);
-      data.end_date = new Date(data.end_date);
+      data.start_date = convertToCustomFormat2(data.start_date);
+      data.end_date = convertToCustomFormat2(data.end_date);
       delete data.type_name;
       await axios.put("/coupon", data).then(async (res) => {
         if (res.data.code === 200) {
@@ -543,13 +547,14 @@ const getTableData = async (time?: string) => {
 
   try {
     const response = await axios.get("/coupon", { params });
-
+    console.log("返回数据:", response);
     if (response.data.code === 200) {
       const records = response.data.data.records;
-
+      // console.log(1)
       // 使用 Promise.all 等待所有异步请求完成
       await Promise.all(
         records.map(async (item: Coupon) => {
+          // console.log(2)
           try {
             const res = await axios.get(`/coupon-types/${item.type_id}`);
             item.type_name = res.data.data.type_name;
@@ -561,7 +566,7 @@ const getTableData = async (time?: string) => {
             );
             item.type_name = ""; // 或者设置一个默认值
           }
-
+          // console.log(3)
           // 格式化日期
           item.start_date = item.start_date.toString().split("T")[0];
           item.end_date = item.end_date.toString().split("T")[0];
@@ -571,15 +576,19 @@ const getTableData = async (time?: string) => {
       );
 
       tableData.value = records;
+      console.log("tableData", tableData.value);
       page.total = response.data.data.total;
       loading.value = false;
     } else {
+      console.log("获取数据为空数据");
       tableData.value = [];
       page.total = 0;
       loading.value = false;
     }
   } catch (e: any) {
-    ElMessage.error("获取数据失败 ");
+    ElMessage.error("获取数据失败 :"+e);
+    console.log(e);
+    
     loading.value = false;
   }
 };
@@ -588,8 +597,29 @@ onBeforeMount(async () => {
   await getTableData();
 });
 
+function deepEqual(a: any, b: any): boolean {
+  if (a === b) return true;
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    const keysA = Object.keys(a);
+    const keysB = Object.keys(b);
+
+    if (keysA.length !== keysB.length) return false;
+
+    for (const key of keysA) {
+      if (!keysB.includes(key) || !deepEqual(a[key], b[key])) return false;
+    }
+
+    return true;
+  }
+
+  return a === b;
+}
 // 比较两个对象是否相同
-function compareObjects(obj1: any, obj2: any): boolean {
+function compareObjects(obj1: Record<string, any>, obj2: Record<string, any>): boolean {
+  if (obj1 === null || obj1 === undefined || obj2 === null || obj2 === undefined) {
+    return obj1 === obj2;
+  }
+
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
 
@@ -597,12 +627,50 @@ function compareObjects(obj1: any, obj2: any): boolean {
     return false;
   }
 
-  for (const key of keys1) {
-    if (obj1[key] !== obj2[key]) {
+  const allKeys = new Set([...keys1, ...keys2]);
+
+  for (const key of allKeys) {
+    if (!deepEqual(obj1[key], obj2[key])) {
       return false;
     }
   }
 
   return true;
+}
+
+function convertToCustomFormat(dateString: string | number | Date) {
+    // 创建一个 Date 对象
+    const date = new Date(dateString);
+
+    // 获取年、月、日、时、分、秒
+    const year = date.getUTCFullYear();
+    const month = ('0' + (date.getUTCMonth() + 1)).slice(-2); // 月份是从0开始的，所以加1
+    const day = ('0' + date.getUTCDate()).slice(-2);
+    const hours = ('0' + date.getUTCHours()).slice(-2);
+    const minutes = ('0' + date.getUTCMinutes()).slice(-2);
+    const seconds = ('0' + date.getUTCSeconds()).slice(-2);
+
+    // 构造新的日期时间字符串
+    const formattedString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
+    return formattedString;
+}
+
+function convertToCustomFormat2(isoString: string | number | Date) {
+    // 创建一个 Date 对象
+    const date = new Date(isoString);
+
+    // 获取年、月、日、时、分、秒
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2); // 月份是从0开始的，所以加1
+    const day = ('0' + date.getDate()).slice(-2);
+    const hours = ('0' + date.getHours()).slice(-2);
+    const minutes = ('0' + date.getMinutes()).slice(-2);
+    const seconds = ('0' + date.getSeconds()).slice(-2);
+
+    // 构造新的日期时间字符串
+    const formattedString = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+
+    return formattedString;
 }
 </script>

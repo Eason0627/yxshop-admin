@@ -58,7 +58,7 @@
           >
         </div>
         <div class="add">
-          <el-button type="primary" @click="addData">{{
+          <el-button type="primary" disabled @click="addData">{{
             addButtonLabel
           }}</el-button>
         </div>
@@ -189,8 +189,8 @@
         <el-table-column fixed="right" label="操作" width="180">
           <template #default="{ row }">
             <div class="action flex">
-              <el-button @click="editRow(row)" type="primary" size="small"
-                >编辑</el-button
+              <el-button @click="editRow(row)" :type=" editButtonLabel?'success':'primary'" size="small"
+                >{{editButtonLabel?editButtonLabel:'编辑'}}</el-button
               >
               <el-button @click="deleteRow(row)" type="danger" size="small"
                 >删除</el-button
@@ -214,7 +214,7 @@
       />
     </div>
     <DialogForm
-      :title="addButtonLabel"
+      :title="editButtonLabel?editButtonLabel:addButtonLabel"
       :dialogVisible="dialogVisible"
       :labelPosition="'left'"
       :fields="formFields"
@@ -261,6 +261,7 @@ const props = defineProps<{
   searchList: SearchField[];
   page: Page;
   addButtonLabel: string;
+  editButtonLabel: string;
   formFields: FormField<any>[];
   loading?: boolean;
   editMethod: (row: any) => void;
@@ -287,6 +288,7 @@ const page = ref<Page>({
   total: 0,
 });
 const addButtonLabel = ref("");
+const editButtonLabel = ref("");
 const formFields = ref<FormField<any>[]>([]);
 const formData = ref({});
 
@@ -342,6 +344,7 @@ const addData = () => {
 
 // 编辑行
 const editRow = (row: any) => {
+
   dialogVisible.value = true;
   formData.value = { ...row };
   props.editMethod(row);
@@ -420,8 +423,12 @@ watchEffect(() => {
   tableData.value = props.tableData;
   searchList.value = props.searchList;
   addButtonLabel.value = props.addButtonLabel;
+  editButtonLabel.value = props.editButtonLabel;
+  // console.log(editButtonLabel.value);
+  
   formFields.value = props.formFields;
   loading.value = props.loading ?? false;
+  page.value = props.page
 });
 
 defineExpose({
