@@ -58,7 +58,7 @@
           >
         </div>
         <div class="add">
-          <el-button type="primary" disabled @click="addData">{{
+          <el-button type="primary"  @click="addData">{{
             addButtonLabel
           }}</el-button>
         </div>
