@@ -134,8 +134,9 @@ import { ref, reactive, inject, onMounted, markRaw, onBeforeMount } from "vue";
 import { ElMessage, ElMessageBox, ElTable } from "element-plus";
 import { Delete } from "@element-plus/icons-vue";
 import { Axios, AxiosResponse } from "axios";
+import EventBus from "@/utils/event-bus";
 import Shop from "@/model/Shop";
-import User, { Role } from "@/model/User";
+import User from "@/model/User";
 import Query from "./Query.vue";
 import Dialog from "./Dialog.vue";
 // ************************************************************************************************************
@@ -147,17 +148,17 @@ const loading = ref(false); // 数据加载状态
 const dialogVisible = ref(false); // 弹框显隐
 const dialogType = ref(""); // 弹框类型
 let shop = ref<Shop>({
-shop_id: "",
-shop_name: "",
-owner_user_id: "",
-phone: "",
-location: "",
-registration_date: "",
-shop_description: "",
-shop_image: "",
-status: "",
-id: undefined,
-name: undefined
+  shop_id: "",
+  shop_name: "",
+  owner_user_id: "",
+  phone: "",
+  location: "",
+  registration_date: "",
+  shop_description: "",
+  shop_image: "",
+  status: "",
+  id: undefined,
+  name: undefined,
 }); // 弹框数据对象
 const requestJSON = {};
 const tableHeader = [
@@ -392,7 +393,6 @@ const getData = async () => {
       setTimeout(() => {
         shopList.value = sortShopStatus(res.data.data.list);
         loading.value = false;
-        console.log(shopList.value);
       }, 1000);
     });
 
@@ -408,6 +408,8 @@ const delShops = async (list: any) => {
       if (res.data.code == 200) {
         ElMessage.success("删除店铺成功！");
         getData();
+        // 触发 TopTools 组件更新
+        EventBus.emit("updateTopTools");
       }
     })
     .catch((e) => {
@@ -419,14 +421,14 @@ onBeforeMount(async () => {
   // 根据用户权限获取数据
   const role = user.role;
   switch (role) {
-    case Role.Admin || "Admin":
+    case "Admin":
       // 当前用户为管理员，获取所有店铺信息
       await getData();
       break;
-    case Role.ShopOwner:
+    case "ShopOwner":
       // 当前用户为商家，商家所有店铺信息
       break;
-    case Role.Customer:
+    case "Customer":
       // 当前用户为顾客
       break;
   }

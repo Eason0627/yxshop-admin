@@ -69,7 +69,6 @@
                 prop="product_info.additional_images"
                 class="col-span-1"
                 label-width="120px"
-                
               >
                 <template #label>
                   <div class="label flex items-center">
@@ -103,7 +102,6 @@
                 prop="product_info.details_images"
                 class="col-span-1"
                 label-width="120px"
-                
               >
                 <template #label>
                   <div class="label flex items-center">
@@ -206,7 +204,7 @@
                 <el-select
                   v-model="form.product_info.category_id"
                   placeholder="选择分类"
-                   @focus="handleCategory()"
+                  @focus="handleCategory()"
                 >
                   <el-option
                     v-for="category in categoryList"
@@ -499,9 +497,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, inject, onMounted, nextTick,  } from "vue";
+import { ref, reactive, inject, onMounted, nextTick } from "vue";
 import { Axios, AxiosResponse } from "axios";
-import { ElMessage, ElInput, FormInstance, } from "element-plus";
+import { ElMessage, ElInput, FormInstance } from "element-plus";
 import FileUploader from "@/components/upload/FileUploader.vue";
 
 // 获取 axios
@@ -638,7 +636,7 @@ const rules = reactive({
   ],
   "product_info.description": [
     { required: true, message: "请输入描述", trigger: "blur" },
-    { maxLength: 500, message: "描述不能超过500个字符", trigger: "blur" }
+    { maxLength: 500, message: "描述不能超过500个字符", trigger: "blur" },
   ],
   "product_info.brand_id": [
     { required: true, message: "请选择品牌", trigger: "blur" },
@@ -662,27 +660,26 @@ const rules = reactive({
     // { minValue: 0, message: "尺寸不能小于0", trigger: "blur" }
   ],
   "product_info.color": [
-    { required: true, message: "请输入颜色", trigger: "blur" }
+    { required: true, message: "请输入颜色", trigger: "blur" },
   ],
   "product_info.weight": [
     { required: true, message: "请输入重量", trigger: "blur" },
-    { type: 'number', message: "重量必须是数字", trigger: "blur" },
+    { type: "number", message: "重量必须是数字", trigger: "blur" },
     // { minValue: 0, message: "重量不能小于0", trigger: "blur" }
   ],
   "product_info.packaging_details": [
-    { required: true, message: "请输入包装详情", trigger: "blur" }
+    { required: true, message: "请输入包装详情", trigger: "blur" },
   ],
   "product_info.warranty_info": [
-    { required: true, message: "请输入保修信息", trigger: "blur" }
+    { required: true, message: "请输入保修信息", trigger: "blur" },
   ],
   "product_info.production_date": [
     { required: true, message: "请输入生产日期", trigger: "blur" },
-    { type: 'date', message: "生产日期必须是有效的日期格式", trigger: "blur" },
+    { type: "date", message: "生产日期必须是有效的日期格式", trigger: "blur" },
   ],
   "product_info.expiration_date": [
     { required: true, message: "请输入过期日期", trigger: "blur" },
-    { type: 'date', message: "过期日期必须是有效的日期格式", trigger: "blur" },
-    
+    { type: "date", message: "过期日期必须是有效的日期格式", trigger: "blur" },
   ],
   "product_info.category_id": [
     { required: true, message: "请选择分类", trigger: "blur" },
@@ -690,48 +687,48 @@ const rules = reactive({
   ],
   "product_sales.price": [
     { required: true, message: "请输入价格", trigger: "blur" },
-    { type: 'number', message: "价格必须是数字", trigger: "blur" },
+    { type: "number", message: "价格必须是数字", trigger: "blur" },
     // { minValue: 0, message: "价格不能小于0", trigger: "blur" }
   ],
   "product_sales.cost_price": [
     { required: true, message: "请输入成本价", trigger: "blur" },
-    { type: 'number', message: "成本价必须是数字", trigger: "blur" },
+    { type: "number", message: "成本价必须是数字", trigger: "blur" },
     // { minValue: 0, message: "成本价不能小于0", trigger: "blur" }
   ],
   "product_sales.stock_quantity": [
     { required: true, message: "请输入库存数量", trigger: "blur" },
-    { type: 'number', message: "库存数量必须是数字", trigger: "blur" },
+    { type: "number", message: "库存数量必须是数字", trigger: "blur" },
     // { minValue: 0, message: "库存数量不能小于0", trigger: "blur" }
   ],
   "product_sales.reorder_threshold": [
     { required: true, message: "请输入补货阈值", trigger: "blur" },
-    { type: 'number', message: "补货阈值必须是数字", trigger: "blur" },
+    { type: "number", message: "补货阈值必须是数字", trigger: "blur" },
     // { minValue: 0, message: "补货阈值不能小于0", trigger: "blur" }
   ],
   "product_sales.sold_quantity": [
     { required: true, message: "请输入已售数量", trigger: "blur" },
-    { type: 'number', message: "已售数量必须是数字", trigger: "blur" },
+    { type: "number", message: "已售数量必须是数字", trigger: "blur" },
     // { minValue: 0, message: "已售数量不能小于0", trigger: "blur" }
   ],
   "product_sales.review_count": [
     { required: true, message: "请输入评价数量", trigger: "blur" },
-    { type: 'number', message: "评价数量必须是数字", trigger: "blur" },
+    { type: "number", message: "评价数量必须是数字", trigger: "blur" },
     // { minValue: 0, message: "评价数量不能小于0", trigger: "blur" }
   ],
   "product_sales.average_rating": [
     { required: true, message: "请输入平均评分", trigger: "blur" },
-    { type: 'number', message: "平均评分必须是数字", trigger: "blur" },
+    { type: "number", message: "平均评分必须是数字", trigger: "blur" },
     // { minValue: 0, message: "平均评分不能小于0", trigger: "blur" },
     // { maxValue: 5, message: "平均评分不能超过5", trigger: "blur" }
   ],
   "product_sales.promotion_details": [
-    { message: "请输入促销详情", trigger: "blur" }
+    { message: "请输入促销详情", trigger: "blur" },
   ],
   "product_sales.shipping_fee": [
     { required: true, message: "请输入运费", trigger: "blur" },
-    { type: 'number', message: "运费必须是数字", trigger: "blur" },
+    { type: "number", message: "运费必须是数字", trigger: "blur" },
     // { minValue: 0, message: "运费不能小于0", trigger: "blur" }
-  ]
+  ],
 });
 
 // 响应式引用数组
@@ -796,7 +793,7 @@ const submitForm = async () => {
   try {
     // 验证表单
     if (!formRef.value) return;
-    console.log("表单数据"+form)
+    console.log("表单数据" + form);
     const isValid = await formRef.value.validate();
     if (isValid) {
       const formData = new FormData();
@@ -822,7 +819,7 @@ const submitForm = async () => {
         }
       });
       formData.append("formParams", JSON.stringify(form.value));
-      console.log("发布商品数据："+formData);
+      console.log("发布商品数据：" + formData);
       // 发送请求发布商品
       await axios
         .post("/products", formData, {
@@ -942,7 +939,7 @@ function uploadValue(file?: any, fileList?: any[], props?: string) {
 }
 
 // 文件上传中
-function uploadChange( file?: any, fileList?: any[], props?: string) {
+function uploadChange(file?: any, fileList?: any[], props?: string) {
   console.log("上传中", file, fileList, props);
   if (props === "main") {
     form.value.product_info.main_image = file;
@@ -955,7 +952,6 @@ function uploadChange( file?: any, fileList?: any[], props?: string) {
   }
 }
 
-
 // 获取当前用户已签约的品牌
 const getBrandList = async () => {
   const user = JSON.parse(localStorage.getItem("user") || "");
@@ -965,17 +961,22 @@ const getBrandList = async () => {
       const Data: Item[] = response.data.data;
       // console.log(Data);
       // 去重函数
-      const removeDuplicates = <T, K extends keyof T>(arr: T[], key: K): T[] => {
-      const seen = new Map<T[K], T>();
-      return arr.filter(item => {
-        const value = item[key];
-        if (!seen.has(value as T[K])) {
-          seen.set(value as T[K], item);
-          return true;
-        }
-        return false;
-      }).map(item => item);
-    };
+      const removeDuplicates = <T, K extends keyof T>(
+        arr: T[],
+        key: K
+      ): T[] => {
+        const seen = new Map<T[K], T>();
+        return arr
+          .filter((item) => {
+            const value = item[key];
+            if (!seen.has(value as T[K])) {
+              seen.set(value as T[K], item);
+              return true;
+            }
+            return false;
+          })
+          .map((item) => item);
+      };
       // 处理去重品牌
       const brandListData: Brand[] = removeDuplicates(
         Data.filter((item) => item.brand_name && item.brand_id).map((item) => ({

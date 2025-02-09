@@ -70,6 +70,7 @@
                 <el-select
                   v-else-if="field.type === 'select'"
                   v-model="formData[field.prop]"
+                  value-key="id"
                   :placeholder="field.placeholder"
                   :multiple="field.multiple"
                   :loading="field.loading ? field.loading : false"
@@ -81,20 +82,20 @@
                       field.onChange(formData[field.prop], field)
                   "
                 >
+                  <template #loading>
+                    <svg class="circular" viewBox="0 0 50 50">
+                      <circle class="path" cx="25" cy="25" r="20" fill="none" />
+                    </svg>
+                  </template>
                   <el-option
                     v-for="option in field.options"
-                    :key="option.value"
+                    :key="option.id"
                     :label="option.label"
                     :value="option.value"
                     :disabled="option.disabled"
                   >
                     <span>{{ option.label }}</span>
                   </el-option>
-                  <template #loading>
-                    <svg class="circular" viewBox="0 0 50 50">
-                      <circle class="path" cx="25" cy="25" r="20" fill="none" />
-                    </svg>
-                  </template>
                 </el-select>
                 <el-date-picker
                   v-else-if="field.type === 'datetime'"
@@ -292,19 +293,6 @@ watch(
 //   console.log("表单字段变化:", event);
 // }
 </script>
-
-<style scoped>
-.el-input,
-.el-select,
-.el-textarea {
-  width: 100%;
-  max-width: 300px;
-}
-
-.el-textarea {
-  max-width: 500px;
-}
-</style>
 
 <style scoped>
 .el-input,

@@ -224,11 +224,11 @@ const routes = [
         name: "仓库列表",
         component: () => import("@/views/Warehouse/List.vue"),
       },
-      {
-        path: "/warehouse/wholesale",
-        name: "出库入库",
-        component: () => import("@/views/Warehouse/Wholesale.vue"),
-      },
+      // {
+      //   path: "/warehouse/wholesale",
+      //   name: "出库入库",
+      //   component: () => import("@/views/Warehouse/Wholesale.vue"),
+      // },
     ],
   },
   {

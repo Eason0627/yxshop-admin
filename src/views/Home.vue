@@ -233,12 +233,12 @@ const navigation: NavigationItem[] = [
         right_icon: "&#xe632;",
         children: [],
       },
-      {
-        url: "/warehouse/wholesale",
-        name: "进货单",
-        right_icon: "&#xe632;",
-        children: [],
-      },
+      // {
+      //   url: "/warehouse/wholesale",
+      //   name: "进货单",
+      //   right_icon: "&#xe632;",
+      //   children: [],
+      // },
     ],
   },
   {
